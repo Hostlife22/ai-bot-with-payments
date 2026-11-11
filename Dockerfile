@@ -1,4 +1,4 @@
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package.json ./
 RUN npm install
@@ -7,7 +7,7 @@ COPY src ./src
 COPY scripts/generate-third-party-notices.mjs ./scripts/generate-third-party-notices.mjs
 RUN npm run build && npm run docs:notices -- --production
 
-FROM node:22-alpine AS runtime
+FROM node:26-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /app/package*.json ./
