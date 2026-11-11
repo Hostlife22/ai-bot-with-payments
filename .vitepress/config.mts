@@ -1,6 +1,8 @@
 import { defineConfig, type DefaultTheme } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 
+import { createSeoConfig } from './seo.mjs';
+
 const repository = process.env.GITHUB_REPOSITORY ?? 'Hostlife22/ai-bot-with-payments';
 const base = process.env.DOCS_BASE ?? '/';
 if (!base.startsWith('/') || !base.endsWith('/'))
@@ -32,6 +34,7 @@ function sidebar(prefix: string, title: string, labels: string[]): DefaultTheme.
 }
 export default withMermaid(
     defineConfig({
+        ...createSeoConfig(repository, filenames),
         title: 'AI Bot with Payments',
         description: 'Telegram AI bot: setup, architecture, payments, and operations.',
         base,

@@ -6,6 +6,11 @@ import { chromium } from '@playwright/test';
 
 const base = process.env.DOCS_BASE ?? '/';
 const origin = 'http://127.0.0.1:4173';
+const [owner, repository] = (
+    process.env.GITHUB_REPOSITORY ?? 'Hostlife22/ai-bot-with-payments'
+).split('/');
+const siteUrl =
+    process.env.DOCS_SITE_URL ?? `https://${owner.toLowerCase()}.github.io/${repository}/`;
 const server = spawn(
     process.execPath,
     [
@@ -33,6 +38,11 @@ try {
         await new Promise((resolve) => setTimeout(resolve, 200));
     }
     assert(ready, 'Documentation preview did not start.');
+    const sitemap = await (await fetch(origin + base + 'sitemap.xml')).text();
+    assert(sitemap.includes(new URL('ru/configuration', siteUrl).href));
+    assert(!sitemap.includes('404.html'));
+    const robots = await (await fetch(origin + base + 'robots.txt')).text();
+    assert(robots.includes(`Sitemap: ${new URL('sitemap.xml', siteUrl).href}`));
     browser = await chromium.launch();
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     const errors = [];
@@ -47,6 +57,14 @@ try {
         assert.equal(response.status(), 200);
         assert.equal(await page.locator('html').getAttribute('lang'), lang);
         await page.locator('main h1').waitFor();
+        const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
+        assert.equal(canonical, new URL(prefix, siteUrl).href);
+        assert.equal(
+            await page.locator('link[hreflang="zh-CN"]').getAttribute('href'),
+            new URL('zh/', siteUrl).href,
+        );
+        assert(await page.locator('meta[property="og:title"]').getAttribute('content'));
+        assert(await page.locator('meta[name="twitter:description"]').getAttribute('content'));
         await page.locator('.VPSidebar a[href$="configuration"]').first().click();
         await page.waitForURL('**/configuration');
         await page.locator('main h1').waitFor();

@@ -10,6 +10,7 @@
 
 ### 新增
 
+- 文档网站的规范链接、语言替代链接、Open Graph/Twitter 元数据、站点地图和 robots.txt。
 - Dependabot 更新分组、Issue 表单、CI、CodeQL、Docker 发布、草稿发布归档以及三语言 GitHub Pages 文档网站。
 - 源码与测试的严格 TypeScript 检查，以及独立生产构建配置。
 - 按主题拆分的 `src/types/` 契约、短模块别名和 Node.js 兼容转换。

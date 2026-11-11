@@ -10,6 +10,7 @@ Significant changes are recorded here. Add entries to `Unreleased`; assign a ver
 
 ### Added
 
+- Canonical URLs, language alternatives, Open Graph/Twitter metadata, a sitemap and robots.txt for the documentation website.
 - Dependabot groups, GitHub issue forms, CI, CodeQL, Docker publication, draft release archives and a three-language GitHub Pages documentation site.
 - Strict TypeScript for source/tests and a separate production build configuration.
 - Focused `src/types/` contracts, short module aliases, and Node.js-compatible alias rewriting.
