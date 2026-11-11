@@ -13,3 +13,6 @@ coverage/
 .vitepress/dist/
 playwright-report/
 test-results/
+
+# Local npm lockfile
+/package-lock.json

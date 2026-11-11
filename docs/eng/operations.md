@@ -92,7 +92,7 @@ Do not publish results containing user or transaction identifiers.
 | Symptom                      | Check                                                                                        |
 | ---------------------------- | -------------------------------------------------------------------------------------------- |
 | Missing environment variable | Required values and how `.env` is loaded; `npm start` does not load it.                      |
-| Missing Node types in tests  | `npm ci`, root `tsconfig.json`, workspace TypeScript, restart TS Server.                     |
+| Missing Node types in tests  | `npm install`, root `tsconfig.json`, workspace TypeScript, restart TS Server.                |
 | PostgreSQL unavailable       | Service readiness, URL, existing user's password, container versus host addresses.           |
 | Jobs not processed           | `REDIS_URL`, Redis database number, queue and worker logs.                                   |
 | Polling conflict             | Another process or environment using the same token.                                         |

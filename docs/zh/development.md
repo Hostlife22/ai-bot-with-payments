@@ -9,7 +9,7 @@
 使用满足 `engines.node` 的 Node.js 版本和独立的开发机器人。不要同时运行使用相同令牌的两个 polling 进程。
 
 ```sh
-npm ci
+npm install
 cp .env.example .env
 ```
 
@@ -55,7 +55,7 @@ docker rm -f ai-bot-dev-postgres ai-bot-dev-redis
 | `npm run build`        | 清理构建并将别名转换成 ESM 路径。                       |
 | `npm run check`        | 检查格式、文档、类型、ESLint、测试和构建。              |
 
-`tsconfig.json` 包含 `src/` 和 `tests/`，显式设置 `types: ["node"]` 并关闭输出。`tsconfig.build.json` 只把 `src/` 编译到 `dist/`。编辑器无法识别 `node:crypto` 或 `node:test` 时，执行 `npm ci`、选择工作区 TypeScript，再运行 `TypeScript: Restart TS Server`。
+`tsconfig.json` 包含 `src/` 和 `tests/`，显式设置 `types: ["node"]` 并关闭输出。`tsconfig.build.json` 只把 `src/` 编译到 `dist/`。编辑器无法识别 `node:crypto` 或 `node:test` 时，执行 `npm install`、选择工作区 TypeScript，再运行 `TypeScript: Restart TS Server`。
 
 ## 文档检查
 

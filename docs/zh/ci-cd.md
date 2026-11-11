@@ -13,7 +13,7 @@ Dependabot 每周日检查 npm、GitHub Actions 和 Docker 基础镜像。次要
 首次使用时设置 **Settings → Pages → Build and deployment → Source → GitHub Actions**。默认分支推送、版本标签以及默认分支手动运行在检查成功后部署网站。拉取请求仅构建与检查。预期地址为 <https://hostlife22.github.io/ai-bot-with-payments/>；需要先推送文件并启用 Pages。
 
 ```bash
-npm ci
+npm install
 npm run docs:check
 npm run docs:build
 npm run docs:preview

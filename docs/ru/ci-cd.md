@@ -13,7 +13,7 @@ Dependabot проверяет npm, GitHub Actions и базовые Docker-об�
 Один раз выберите **Settings → Pages → Build and deployment → Source → GitHub Actions**. Успешные push в основную ветку, теги версий и ручные запуски основной ветки публикуют сайт. Pull request только собирает и проверяет документацию. Ожидаемый адрес: <https://hostlife22.github.io/ai-bot-with-payments/>. Сначала необходимо отправить файлы в GitHub и включить Pages.
 
 ```bash
-npm ci
+npm install
 npm run docs:check
 npm run docs:build
 npm run docs:preview

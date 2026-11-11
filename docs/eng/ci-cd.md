@@ -13,7 +13,7 @@ Dependabot checks npm packages, GitHub Actions and Docker base images every Sund
 Enable **Settings → Pages → Build and deployment → Source → GitHub Actions** once. Successful default-branch pushes, version tags and manual runs on the default branch deploy to GitHub Pages. Pull requests only build and validate. The expected URL is <https://hostlife22.github.io/ai-bot-with-payments/>; publication requires pushing these files and enabling Pages.
 
 ```bash
-npm ci
+npm install
 npm run docs:check
 npm run docs:build
 npm run docs:preview

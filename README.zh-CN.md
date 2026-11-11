@@ -43,7 +43,7 @@ Compose 使用名为 `pgdata` 的卷保存 PostgreSQL 数据，不向宿主机�
 
 | 命令                   | 用途                                           |
 | ---------------------- | ---------------------------------------------- |
-| `npm ci`               | 根据 lockfile 安装依赖。                       |
+| `npm install`          | 安装依赖并生成本地 lockfile。                  |
 | `npm run dev`          | 读取 `.env`，通过 `tsx` 运行 TypeScript 源码。 |
 | `npm run check`        | 检查代码与文档格式、类型、ESLint、测试和构建。 |
 | `npm run format`       | 格式化代码并排序导入。                         |

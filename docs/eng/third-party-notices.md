@@ -7,7 +7,7 @@ The complete inventory and upstream LICENSE/NOTICE texts are in [THIRD_PARTY_NOT
 ## Regeneration
 
 ```sh
-npm ci
+npm install
 npm run docs:notices
 ```
 
@@ -19,4 +19,4 @@ Optional native dependencies differ by platform. Regenerate in a separate enviro
 
 ## Project license
 
-Project code uses [MIT](../../LICENSE); libraries retain their own terms. Photos and external API output require separate consideration of usage rights. Include lockfile and notice updates in dependency-update PRs.
+Project code uses [MIT](../../LICENSE); libraries retain their own terms. Photos and external API output require separate consideration of usage rights. Include manifest and notice updates in dependency-update PRs; the generated local lockfile is not committed.

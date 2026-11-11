@@ -13,7 +13,7 @@
 ## 准备
 
 1. 从最新主开发分支创建 fork 或工作分支。
-2. 安装受支持的 Node.js，运行 `npm ci`。
+2. 安装受支持的 Node.js，运行 `npm install`。
 3. 按开发文档配置独立机器人、`.env`、PostgreSQL 和 Redis。
 4. 修复余额、支付、权限或后台处理错误时，添加回归测试。
 
@@ -43,7 +43,7 @@ npm run check
 
 菜单变更请分别以普通用户和管理员测试，检查长标签、导航、屏幕阅读器，以及不依赖表情或颜色时的含义。
 
-更新依赖后同步 lockfile，并执行：
+`package-lock.json` 仅保存在本地并由 Git 忽略。更新依赖后执行 `npm install` 刷新它，然后运行：
 
 ```sh
 npm run docs:notices

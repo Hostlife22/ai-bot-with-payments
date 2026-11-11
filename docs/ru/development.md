@@ -9,7 +9,7 @@
 Используйте Node.js, удовлетворяющий `engines.node` в `package.json`, и отдельного Telegram-бота для разработки. Не запускайте два polling-процесса с одним токеном.
 
 ```sh
-npm ci
+npm install
 cp .env.example .env
 ```
 
@@ -55,7 +55,7 @@ docker rm -f ai-bot-dev-postgres ai-bot-dev-redis
 | `npm run build`        | Чистая компиляция и преобразование алиасов в `.js`-пути.                    |
 | `npm run check`        | Форматирование кода и документации, типы, ESLint, тесты и сборка.           |
 
-`tsconfig.json` включает `src/` и `tests/`, явно задаёт `types: ["node"]` и `noEmit`. `tsconfig.build.json` переопределяет настройки для сборки только `src/` в `dist/`. Если редактор не видит `node:crypto` или `node:test`, выполните `npm ci`, выберите TypeScript из workspace и перезапустите `TypeScript: Restart TS Server`.
+`tsconfig.json` включает `src/` и `tests/`, явно задаёт `types: ["node"]` и `noEmit`. `tsconfig.build.json` переопределяет настройки для сборки только `src/` в `dist/`. Если редактор не видит `node:crypto` или `node:test`, выполните `npm install`, выберите TypeScript из workspace и перезапустите `TypeScript: Restart TS Server`.
 
 ## Проверка документации
 

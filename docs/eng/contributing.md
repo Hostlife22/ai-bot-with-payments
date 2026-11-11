@@ -13,7 +13,7 @@ Discuss substantial behavior changes first: explain the affected use case, data,
 ## Setup
 
 1. Create a fork or working branch from the current primary branch.
-2. Install a supported Node.js version and run `npm ci`.
+2. Install a supported Node.js version and run `npm install`.
 3. Configure a dedicated bot, `.env`, PostgreSQL, and Redis as described in development documentation.
 4. Add a regression test for a bug involving balances, payments, access, or background processing.
 
@@ -43,7 +43,7 @@ Payment tests should cover duplicate confirmation, wrong amount/currency/owner, 
 
 Test menu changes as an ordinary user and administrator. Review long labels, navigation, screen-reader behavior, and meaning without relying solely on emoji or color.
 
-After dependency updates, synchronize the lockfile and run:
+`package-lock.json` is local and ignored by Git. After dependency updates, refresh it with `npm install` and run:
 
 ```sh
 npm run docs:notices

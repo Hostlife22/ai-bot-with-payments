@@ -7,7 +7,7 @@
 ## 重新生成
 
 ```sh
-npm ci
+npm install
 npm run docs:notices
 ```
 
@@ -19,4 +19,4 @@ npm run docs:notices
 
 ## 项目许可证
 
-项目代码使用 [MIT](../../LICENSE)，第三方库保留各自条件。图片与外部 API 输出的使用权需单独考虑。依赖更新 PR 应同时包含 lockfile 和声明更新。
+项目代码使用 [MIT](../../LICENSE)，第三方库保留各自条件。图片与外部 API 输出的使用权需单独考虑。依赖更新 PR 应包含清单和声明更新，不提交生成的本地 lockfile。

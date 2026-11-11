@@ -9,7 +9,7 @@
 Use a Node.js version matching `engines.node` and a dedicated development Telegram bot. Do not run two polling processes with the same token.
 
 ```sh
-npm ci
+npm install
 cp .env.example .env
 ```
 
@@ -55,7 +55,7 @@ docker rm -f ai-bot-dev-postgres ai-bot-dev-redis
 | `npm run build`        | Clean compilation and alias-to-ESM-path rewriting.                             |
 | `npm run check`        | Formatting, documentation, types, lint, tests, and build.                      |
 
-`tsconfig.json` includes `src/` and `tests/`, sets `types: ["node"]`, and disables emission. `tsconfig.build.json` emits only `src/` into `dist/`. For editor errors on `node:crypto` or `node:test`, run `npm ci`, select workspace TypeScript, and use `TypeScript: Restart TS Server`.
+`tsconfig.json` includes `src/` and `tests/`, sets `types: ["node"]`, and disables emission. `tsconfig.build.json` emits only `src/` into `dist/`. For editor errors on `node:crypto` or `node:test`, run `npm install`, select workspace TypeScript, and use `TypeScript: Restart TS Server`.
 
 ## Documentation checks
 

@@ -33,7 +33,7 @@
 
 ## 更新与验证
 
-通过 `npm ci` 安装依赖。检查运行时依赖：
+通过 `npm install` 安装依赖。检查运行时依赖：
 
 ```sh
 npm audit --omit=dev

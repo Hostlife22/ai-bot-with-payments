@@ -33,7 +33,7 @@ Test only environments you own or have permission to assess. Use test payments a
 
 ## Updates and validation
 
-Install with `npm ci`. To inspect runtime dependencies:
+Install with `npm install`. To inspect runtime dependencies:
 
 ```sh
 npm audit --omit=dev

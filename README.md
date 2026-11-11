@@ -43,7 +43,7 @@ Compose stores PostgreSQL data in the named `pgdata` volume. It does not publish
 
 | Command                | Purpose                                                           |
 | ---------------------- | ----------------------------------------------------------------- |
-| `npm ci`               | Install the locked dependency tree.                               |
+| `npm install`          | Install dependencies and generate a local lockfile.               |
 | `npm run dev`          | Run TypeScript sources through `tsx`, loading `.env`.             |
 | `npm run check`        | Check formatting, documentation, types, ESLint, tests, and build. |
 | `npm run format`       | Format code and sort imports.                                     |
