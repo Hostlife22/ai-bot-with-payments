@@ -1,29 +1,31 @@
 # AI Bot with Payments
 
-Telegram-бот на TypeScript с AI-диалогами через OpenRouter, PostgreSQL, очередями BullMQ/Redis и оплатой пакетами через Telegram Stars и Platega.
+**English** · [Русский](README.ru.md) · [简体中文](README.zh-CN.md)
 
-## Возможности
+A TypeScript Telegram bot with OpenRouter conversations, PostgreSQL storage, BullMQ/Redis queues, and message/photo packages paid through Telegram Stars or Platega.
 
-- Текстовые диалоги с историей, готовыми ролями и пользовательским промптом.
-- Локальные стартовые фотографии и генерация изображений для покупателей.
-- Балансы сообщений и фото, магазин, скидки и промокоды.
-- Реферальные бонусы и ежедневный бонус с необязательной проверкой подписки.
-- Админка: пользователи, балансы, цены, тексты, статистика и рассылки.
-- Фоновые напоминания и восстановление проверки незавершённых платежей.
+## Features
 
-Бот получает обновления через Telegram polling. Собственного HTTP API, обработки пользовательских медиа моделью и генерации голосовых сообщений сейчас нет.
+- Text conversations with history, predefined roles, and custom system prompts.
+- Local starter photos and image generation for customers who have purchased a package.
+- Message and photo balances, package purchases, discounts, and promo codes.
+- Referral rewards and daily bonuses with optional channel subscription checks.
+- An administrator panel for users, balances, prices, content, statistics, and broadcasts.
+- Background reminders and restart recovery for pending payment checks.
 
-## Быстрый запуск
+Updates are received through Telegram polling. The project currently has no HTTP API, user-media analysis, or voice generation.
 
-Для запуска через Docker нужны Docker Engine и Compose. Для разработки без контейнера бота нужны Node.js `^22.13.0 || >=24`, npm, PostgreSQL 15+ и Redis 7+.
+## Quick start
+
+Docker deployment requires Docker Engine and Compose. Running the bot outside Docker requires Node.js `^22.13.0 || >=24`, npm, PostgreSQL 15+, and Redis 7+.
 
 ```sh
 cp .env.example .env
 ```
 
-Заполните `.env`: `BOT_TOKEN`, `ADMIN_ID`, `OPENROUTER_API_KEY`, параметры PostgreSQL и Redis. В Compose адреса сервисов — `postgres` и `redis`. Для Platega дополнительно укажите два ключа провайдера. Примеры и правила значений: [конфигурация](docs/configuration.md).
+Fill in `BOT_TOKEN`, `ADMIN_ID`, `OPENROUTER_API_KEY`, and the database/Redis connection details. Inside Compose, the service hosts are `postgres` and `redis`. Platega also requires both provider credentials. See [configuration](docs/eng/configuration.md).
 
-Перед сборкой положите стартовые фотографии в `src/assets/free_pics/`. Затем:
+Place starter images in `src/assets/free_pics/` before building, then run:
 
 ```sh
 docker compose up --build -d
@@ -31,52 +33,54 @@ docker compose ps
 docker compose logs -f bot
 ```
 
-Миграции применяются автоматически до запуска бота. `database_backup.sql` автоматически не импортируется. Отправьте боту `/start`, примите условия и проверьте профиль. Панель `/admin` доступна ID из `ADMIN_ID`.
+Migrations run automatically before the bot starts. `database_backup.sql` is not imported automatically. Send `/start`, accept the terms, and check your profile. `/admin` is available to the Telegram ID in `ADMIN_ID`.
 
-Compose сохраняет PostgreSQL в именованном томе `pgdata`; сервисы БД и Redis не публикуют порты на хост. Для локального `npm run dev` используйте [отдельные сервисы с опубликованными портами](docs/development.md).
+Compose stores PostgreSQL data in the named `pgdata` volume. It does not publish PostgreSQL or Redis ports to the host. For local development, use the [separate services with published ports](docs/eng/development.md).
 
-## Команды
+## Commands
 
-| Команда | Назначение |
-| --- | --- |
-| `npm ci` | Установить зависимости из lockfile. |
-| `npm run dev` | Запустить исходники с `.env` через `tsx`. |
-| `npm run check` | Проверить форматирование, типы, ESLint, тесты и сборку. |
-| `npm run format` | Отформатировать код и отсортировать импорты. |
-| `npm run build` | Очистить `dist`, скомпилировать TypeScript и преобразовать алиасы. |
-| `npm start` | Запустить `dist/main.js` с уже переданным окружением. |
-| `npm run docs:notices` | Обновить сведения и уведомления о зависимостях. |
+| Command                | Purpose                                                           |
+| ---------------------- | ----------------------------------------------------------------- |
+| `npm ci`               | Install the locked dependency tree.                               |
+| `npm run dev`          | Run TypeScript sources through `tsx`, loading `.env`.             |
+| `npm run check`        | Check formatting, documentation, types, ESLint, tests, and build. |
+| `npm run format`       | Format code and sort imports.                                     |
+| `npm run build`        | Clean `dist`, compile TypeScript, and rewrite aliases.            |
+| `npm start`            | Run `dist/main.js` with an already configured environment.        |
+| `npm run docs:notices` | Regenerate third-party package notices.                           |
 
-`npm start` сам не загружает `.env`. Для собранного приложения с файлом окружения:
+`npm start` does not load `.env` itself. To use an environment file with a compiled build:
 
 ```sh
 node --env-file=.env --dns-result-order=ipv4first dist/main.js
 ```
 
-## Документация
+## Documentation
 
-| Документ | Содержание |
-| --- | --- |
-| [Конфигурация](docs/configuration.md) | Переменные, адреса сервисов, настройки БД и параметры в коде. |
-| [Архитектура](docs/architecture.md) | Слои, типы, очереди, таблицы, жизненный цикл приложения. |
-| [Разработка](docs/development.md) | Локальный запуск, тесты, алиасы, форматирование и миграции. |
-| [Платежи](docs/payments.md) | Пакеты, снимки покупок, Stars, Platega и ограничения зачисления. |
-| [Администрирование](docs/administration.md) | Команды, цены, промокоды, бонусы, рассылки и статистика. |
-| [Эксплуатация](docs/operations.md) | Обновление, резервные копии, диагностика и ограничения хранения. |
-| [Участие в разработке](CONTRIBUTING.md) | Подготовка изменений, проверки, коммиты и pull requests. |
-| [Безопасность](SECURITY.md) | Приватные сообщения об уязвимостях и работа с секретами. |
-| [Доступность](ACCESSIBILITY.md) | Особенности Telegram-интерфейса и ручные проверки. |
-| [История изменений](CHANGELOG.md) | Изменения, подготовленные к выпуску. |
-| [Сторонние компоненты](THIRD_PARTY_NOTICES.md) | Версии зависимостей и тексты уведомлений. |
+Full guides: [English](docs/eng/architecture.md), [Русский](docs/ru/architecture.md), [简体中文](docs/zh/architecture.md).
 
-## Важные ограничения
+| Document                                         | Contents                                                                      |
+| ------------------------------------------------ | ----------------------------------------------------------------------------- |
+| [Configuration](docs/eng/configuration.md)       | Environment variables, connections, database settings, code-level parameters. |
+| [Architecture](docs/eng/architecture.md)         | Layers, types, queues, tables, startup and shutdown.                          |
+| [Development](docs/eng/development.md)           | Local setup, tests, aliases, formatting, migrations.                          |
+| [Payments](docs/eng/payments.md)                 | Packages, purchase snapshots, Stars, Platega, fulfillment boundaries.         |
+| [Administration](docs/eng/administration.md)     | Menus, balances, prices, promo codes, rewards, broadcasts.                    |
+| [Operations](docs/eng/operations.md)             | Updates, backups, diagnostics, storage and recovery limits.                   |
+| [Contributing](CONTRIBUTING.md)                  | Changes, validation, commits, pull requests.                                  |
+| [Security](SECURITY.md)                          | Private vulnerability reporting and secret handling.                          |
+| [Accessibility](ACCESSIBILITY.md)                | Telegram interface behavior and manual checks.                                |
+| [Changelog](CHANGELOG.md)                        | Changes awaiting release.                                                     |
+| [Third-party components](THIRD_PARTY_NOTICES.md) | Installed versions and upstream notices.                                      |
 
-- Один процесс содержит polling, AI-воркер, рассылки и планировщики. Сессии и ограничения частоты локальны; схема для нескольких экземпляров отдельно не реализована.
-- Резерв баланса возвращается при обработанной ошибке. Аварийное завершение процесса может оставить резерв; повторная обработка задачи может повторить внешний AI-запрос.
-- Free Mode отключает списание сообщений, но не лимит фото. VIP — выдача 9999 сообщений и 9999 фото, а не временная подписка.
-- Фото запрашиваются через текстовый обработчик: вне Free Mode для запроса требуется и баланс сообщений.
-- Старые счета JavaScript-версии без снимка покупки требуют ручной сверки при переходе.
+## Operational boundaries
 
-## Лицензия
+- One process hosts polling, workers, and schedulers. Sessions and rate limits are local; multi-instance coordination is not implemented.
+- A handled failure refunds a reserved balance. A process crash can leave a reservation, and a retried job can repeat an external AI request.
+- Free Mode disables message debits, not photo limits. VIP grants 9999 messages and 9999 photos rather than a timed subscription.
+- Photo requests enter the text flow and also require a message balance when Free Mode is off.
+- Legacy JavaScript invoices without purchase snapshots require manual reconciliation during migration.
 
-Код проекта распространяется по [MIT](LICENSE). Сторонние компоненты сохраняют собственные лицензии; уведомления собраны в [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Содержимое внешних API и добавляемые вами фотографии не получают лицензию проекта автоматически.
+## License
+
+Project code is licensed under [MIT](LICENSE). Dependencies retain their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The project license does not automatically cover uploaded photos or external API output.

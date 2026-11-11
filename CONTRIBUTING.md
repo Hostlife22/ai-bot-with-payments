@@ -1,62 +1,60 @@
-# Участие в разработке
+# Contributing
 
-Спасибо за интерес к проекту. Начните с [README](README.md), [архитектуры](docs/architecture.md) и [локального запуска](docs/development.md).
+**English** · [Русский](docs/ru/contributing.md) · [简体中文](docs/zh/contributing.md)
 
-## Обсуждение изменений
+Start with the [README](README.md), [architecture](docs/eng/architecture.md), and [local setup](docs/eng/development.md).
 
-Для ошибки создайте [Issue](https://github.com/Hostlife22/ai-bot-with-payments/issues) с шагами воспроизведения, ожидаемым и фактическим поведением, версией Node.js и commit hash. Удалите токены, реальные переписки и платёжные данные из примеров.
+## Proposing changes
 
-Крупное изменение поведения сначала опишите в Issue: какой сценарий меняется, какие данные затронуты и как будет выполнен переход. Уязвимости сообщайте по [SECURITY.md](SECURITY.md), проблемы доступности — по [ACCESSIBILITY.md](ACCESSIBILITY.md).
+Report ordinary bugs through [Issues](https://github.com/Hostlife22/ai-bot-with-payments/issues). Include reproduction steps, expected/actual behavior, Node.js version, and commit hash. Remove credentials, real conversations, and payment data.
 
-## Подготовка
+Discuss substantial behavior changes first: explain the affected use case, data, and upgrade path. Report vulnerabilities using [SECURITY.md](SECURITY.md) and accessibility issues using [ACCESSIBILITY.md](ACCESSIBILITY.md).
 
-1. Создайте fork или рабочую ветку от актуальной основной ветки.
-2. Установите поддерживаемую версию Node.js и выполните `npm ci`.
-3. Настройте отдельного бота, `.env` и выделенные PostgreSQL/Redis по инструкции разработки.
-4. Сохраните исходное поведение тестом, если исправляете ошибку в балансе, платеже, доступе или фоновом сценарии.
+## Setup
 
-Для веток используйте понятные имена: `feat/payment-status`, `fix/referral-race`, `docs/local-setup`.
+1. Create a fork or working branch from the current primary branch.
+2. Install a supported Node.js version and run `npm ci`.
+3. Configure a dedicated bot, `.env`, PostgreSQL, and Redis as described in development documentation.
+4. Add a regression test for a bug involving balances, payments, access, or background processing.
 
-## Стиль и архитектура
+Use descriptive branch names such as `feat/payment-status`, `fix/referral-race`, and `docs/local-setup`.
 
-- Используйте TypeScript со всеми включёнными строгими проверками. Не подавляйте ошибки через `any`, `@ts-ignore` или утверждения ненулевого значения.
-- Форматирование: Prettier, отступ 4 пробела, одинарные кавычки и точки с запятой. Команда `npm run format` также сортирует импорты.
-- Для связей модулей используйте короткие алиасы, например `@database/users` и `@contracts/user`; для соседних файлов — `./file.js`.
-- Модели и контракты размещайте в тематических файлах `src/types/` и импортируйте через `import type`. Исполняемый код храните в соответствующем слое.
-- Прикладной сценарий зависит от контракта, адаптер — реализует его, `bootstrap` — соединяет реализации. Не запускайте подключения и таймеры при импорте файла.
-- Сохраняйте совместимость старых данных. Применённую миграцию не редактируйте; добавьте следующую и внесите её в список `migrate.ts`.
-- Обрабатывайте ошибки и освобождайте ресурсы. Для SQL используйте параметры, для общего состояния и балансов учитывайте конкурентные обращения.
+## Code and architecture
 
-## Проверки перед pull request
+- Keep strict TypeScript checks enabled. Do not suppress problems with `any`, `@ts-ignore`, or non-null assertions.
+- Use Prettier: four-space indentation, single quotes, semicolons. `npm run format` also sorts imports.
+- Use short aliases such as `@database/users` and `@contracts/user`; use `./file.js` for siblings.
+- Put shared models/contracts in focused `src/types/` files and use `import type`. Keep executable behavior in its appropriate layer.
+- Application use cases depend on contracts, adapters implement them, and bootstrap wires implementations. Do not open connections or start timers during module import.
+- Preserve existing data. Add a new migration and list it in `migrate.ts` rather than editing an applied migration.
+- Handle errors, release resources, parameterize SQL, and account for concurrent balance/state changes.
+
+## Validation before a pull request
 
 ```sh
 npm run format
+npm run docs:format
 npm run check
 ```
 
-Для изменений БД и очередей дополнительно запустите интеграционные группы с `TEST_DATABASE_URL` и `TEST_REDIS_URL` на выделенных сервисах. Инструкции — в [development.md](docs/development.md#интеграционные-тесты).
+For database/queue changes, also run integration suites with `TEST_DATABASE_URL` and `TEST_REDIS_URL` against isolated services. See [integration tests](docs/eng/development.md#integration-tests).
 
-Для платежей проверяйте повторное подтверждение, неверную сумму/валюту/владельца, конкурентное зачисление и откат транзакции. Для баланса — отсутствие отрицательного остатка и возврат резерва при обработанной ошибке. Тесты называйте `tests/<сценарий>.test.ts`; фиксированного процента покрытия нет.
+Payment tests should cover duplicate confirmation, wrong amount/currency/owner, concurrent fulfillment, and rollback. Balance tests should cover nonnegative results and refunds after handled generation failures. Name files `tests/<scenario>.test.ts`; no fixed coverage percentage is required.
 
-Изменения Telegram-меню проверьте обычным пользователем и администратором. Учтите длинные подписи, навигацию, экранный диктор и чтение без опоры только на эмодзи или цвет.
+Test menu changes as an ordinary user and administrator. Review long labels, navigation, screen-reader behavior, and meaning without relying solely on emoji or color.
 
-При обновлении зависимостей синхронизируйте `package-lock.json` и выполните:
+After dependency updates, synchronize the lockfile and run:
 
 ```sh
 npm run docs:notices
 ```
 
-## Коммиты и pull requests
+## Commits and pull requests
 
-Используйте краткие сообщения с префиксом: `feat:`, `fix:`, `refactor:`, `docs:`, `test:` или `chore:`. Например: `fix: prevent duplicate Stars credits`.
+Use concise prefixes: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, or `chore:`. Example: `fix: prevent duplicate Stars credits`.
 
-В описании PR укажите:
+A PR description should include the problem and resulting behavior, related Issue, schema/environment/upgrade changes, validation results, and limits such as absent live provider testing. Include sanitized screenshots or a short recording for menu changes.
 
-- Проблему и итоговое поведение; ссылку на Issue, если она есть.
-- Изменения схемы, окружения или порядка обновления.
-- Выполненные проверки и ограничения проверки, включая отсутствие live-теста провайдера.
-- Скриншоты или короткую запись для изменений меню, без персональных данных.
+Update affected documentation and the `Unreleased` section of [CHANGELOG.md](CHANGELOG.md). Keep English, Russian, and Simplified Chinese guides aligned, including commands and operational limits. Do not commit `dist/`, `.env`, dumps, backups, or user logs.
 
-Обновите затронутую документацию и раздел `Unreleased` в [CHANGELOG.md](CHANGELOG.md). Не добавляйте `dist/`, `.env`, SQL-дампы, резервные копии и логи пользователей.
-
-Изменения предлагаются на условиях [MIT](LICENSE); добавляемый сторонний код должен сохранять свои уведомления и совместимые условия распространения.
+Contributions use the project's [MIT license](LICENSE). Added third-party code must retain its notices and compatible distribution terms.

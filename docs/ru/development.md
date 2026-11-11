@@ -1,6 +1,8 @@
 # Разработка и тестирование
 
-[К документации](../README.md#документация) · [Правила участия](../CONTRIBUTING.md)
+[English](../eng/development.md) · **Русский** · [简体中文](../zh/development.md)
+
+[К документации](../../README.ru.md#документация) · [Правила участия](contributing.md)
 
 ## Локальный запуск
 
@@ -43,17 +45,21 @@ docker rm -f ai-bot-dev-postgres ai-bot-dev-redis
 
 ## Проверки
 
-| Команда | Проверка |
-| --- | --- |
-| `npm run typecheck` | Исходники и тесты в одном TypeScript-проекте, без генерации файлов. |
-| `npm run lint` | Ошибки кода, необработанные Promise и границы архитектуры. |
-| `npm run format` | Prettier и сортировка импортов с изменением файлов. |
-| `npm run format:check` | Проверка форматирования без изменений. |
-| `npm test` | Тесты `node:test` через `tsx`; интеграционные группы включаются окружением. |
-| `npm run build` | Чистая компиляция и преобразование алиасов в `.js`-пути. |
-| `npm run check` | Все перечисленные проверки, кроме команды форматирования с изменением файлов. |
+| Команда                | Проверка                                                                    |
+| ---------------------- | --------------------------------------------------------------------------- |
+| `npm run typecheck`    | Исходники и тесты в одном TypeScript-проекте, без генерации файлов.         |
+| `npm run lint`         | Ошибки кода, необработанные Promise и границы архитектуры.                  |
+| `npm run format`       | Prettier и сортировка импортов с изменением файлов.                         |
+| `npm run format:check` | Проверка форматирования без изменений.                                      |
+| `npm test`             | Тесты `node:test` через `tsx`; интеграционные группы включаются окружением. |
+| `npm run build`        | Чистая компиляция и преобразование алиасов в `.js`-пути.                    |
+| `npm run check`        | Форматирование кода и документации, типы, ESLint, тесты и сборка.           |
 
 `tsconfig.json` включает `src/` и `tests/`, явно задаёт `types: ["node"]` и `noEmit`. `tsconfig.build.json` переопределяет настройки для сборки только `src/` в `dist/`. Если редактор не видит `node:crypto` или `node:test`, выполните `npm ci`, выберите TypeScript из workspace и перезапустите `TypeScript: Restart TS Server`.
+
+## Проверка документации
+
+`npm run docs:format` форматирует три README, политики проекта и локализованные руководства. `npm run docs:check` проверяет форматирование, локальные ссылки и заголовки, а также одинаковый набор файлов в `docs/ru`, `docs/eng` и `docs/zh`. Уведомления зависимостей генерируются отдельно через `npm run docs:notices` с сохранением исходных текстов.
 
 ## Интеграционные тесты
 
@@ -84,26 +90,26 @@ docker rm -f ai-bot-test-pg ai-bot-test-redis
 ## Типы и импорты
 
 ```ts
-import type { User } from '@contracts/user';
 import type { PurchaseIntent } from '@contracts/purchases';
+import type { User } from '@contracts/user';
 import { createRepository } from '@database/repository';
 ```
 
-| Алиас | Каталог |
-| --- | --- |
-| `@bootstrap/*` | `src/bootstrap/*` |
-| `@config/*` | `src/config/*` |
-| `@contracts/*` | `src/types/*` |
-| `@domain/*` | `src/domain/*` |
-| `@app/*` | `src/application/*` |
-| `@database/*` | `src/infrastructure/database/*` |
-| `@providers/*` | `src/infrastructure/ai/*` |
-| `@payments/*` | `src/infrastructure/payments/*` |
-| `@queues/*` | `src/infrastructure/queues/*` |
-| `@telegram/*` | `src/presentation/telegram/*` |
-| `@shop/*` | `src/presentation/telegram/shop/*` |
-| `@admin/*` | `src/presentation/telegram/admin/*` |
-| `@handlers/*` | `src/presentation/telegram/handlers/*` |
+| Алиас          | Каталог                                |
+| -------------- | -------------------------------------- |
+| `@bootstrap/*` | `src/bootstrap/*`                      |
+| `@config/*`    | `src/config/*`                         |
+| `@contracts/*` | `src/types/*`                          |
+| `@domain/*`    | `src/domain/*`                         |
+| `@app/*`       | `src/application/*`                    |
+| `@database/*`  | `src/infrastructure/database/*`        |
+| `@providers/*` | `src/infrastructure/ai/*`              |
+| `@payments/*`  | `src/infrastructure/payments/*`        |
+| `@queues/*`    | `src/infrastructure/queues/*`          |
+| `@telegram/*`  | `src/presentation/telegram/*`          |
+| `@shop/*`      | `src/presentation/telegram/shop/*`     |
+| `@admin/*`     | `src/presentation/telegram/admin/*`    |
+| `@handlers/*`  | `src/presentation/telegram/handlers/*` |
 
 Для соседнего файла используйте `./file.js`, для связи модулей — ближайший алиас. Типы выносите в тематический файл, если это модель, контракт или повторно используемая структура. Одноразовые локальные формы результата SQL-запроса допустимы рядом с запросом. Не создавайте общий файл с реэкспортом всех типов.
 
@@ -111,6 +117,6 @@ import { createRepository } from '@database/repository';
 
 ## Изменение схемы
 
-Добавьте новый SQL-файл в `migrations/` и его имя в список [migrate.ts](../src/infrastructure/database/migrate.ts). Простого добавления файла в каталог недостаточно: автоматического обнаружения нет. Применённые миграции по имени больше не исполняются, поэтому исправления оформляйте следующей миграцией. Автоматического rollback и отдельной команды `migrate` нет.
+Добавьте новый SQL-файл в `migrations/` и его имя в список [migrate.ts](../../src/infrastructure/database/migrate.ts). Простого добавления файла в каталог недостаточно: автоматического обнаружения нет. Применённые миграции по имени больше не исполняются, поэтому исправления оформляйте следующей миграцией. Автоматического rollback и отдельной команды `migrate` нет.
 
 Проверьте новую БД, повторный запуск и обновление существующей схемы. Для запросов используйте параметры `$1`, `$2`; выбор SQL-идентификатора допускается только из закрытого набора значений.

@@ -1,42 +1,44 @@
 # Changelog
 
-Здесь описаны существенные изменения проекта. Новые записи добавляются в `Unreleased`; дата и номер версии указываются при фактическом выпуске. Значение `version` в `package.json` само по себе не означает опубликованный релиз.
+**English** · [Русский](docs/ru/changelog.md) · [简体中文](docs/zh/changelog.md)
+
+Significant changes are recorded here. Add entries to `Unreleased`; assign a version and date when a release is actually made. `package.json` version metadata alone does not indicate a published release.
 
 ## [Unreleased]
 
-### Добавлено
+### Added
 
-- Строгий TypeScript, проверка исходников и тестов, отдельная production-конфигурация сборки.
-- Контракты и модели в `src/types/`, короткие алиасы модулей и их преобразование для Node.js.
-- Фабрики зависимостей и отдельные модули запуска, остановки и очистки сессий.
-- SQL-миграции с журналом применения и advisory lock.
-- Снимки покупок, проверка реквизитов оплаты и транзакционное однократное зачисление.
-- Unit- и интеграционные проверки PostgreSQL, Redis, Telegram middleware и жизненного цикла.
-- Prettier, сортировка импортов и ESLint-проверки границ архитектуры.
-- Документация по запуску, конфигурации, разработке, платежам, администрированию и эксплуатации.
-- `CONTRIBUTING.md`, `SECURITY.md`, `ACCESSIBILITY.md` и сведения о сторонних компонентах с генератором уведомлений.
-- Текст MIT-лицензии проекта.
+- Strict TypeScript for source/tests and a separate production build configuration.
+- Focused `src/types/` contracts, short module aliases, and Node.js-compatible alias rewriting.
+- Dependency factories, separate startup/shutdown modules, and session cleanup.
+- SQL migrations with an application journal and advisory lock.
+- Purchase snapshots, payment proof validation, and transactional single fulfillment.
+- Unit/integration coverage for PostgreSQL, Redis, Telegram middleware, and lifecycle behavior.
+- Prettier, import sorting, and ESLint architecture checks.
+- English, Russian, and Simplified Chinese READMEs and guides for setup, architecture, development, payments, administration, and operations.
+- Contributing, security, accessibility, and third-party notices documentation with a notice generator.
+- The project's MIT license text.
 
-### Изменено
+### Changed
 
-- JavaScript-реализация перенесена на TypeScript с разделением домена, прикладных сервисов, адаптеров и Telegram-обработчиков.
-- PostgreSQL-репозиторий разделён по областям; магазин — на меню, Stars, Platega и фоновую проверку.
-- Docker использует многостадийную сборку и запуск от пользователя `node`.
-- Метаданные пакета и ссылки приведены к `Hostlife22/ai-bot-with-payments`; обновлены совместимые диапазоны зависимостей.
-- Требование Node.js согласовано с инструментами разработки: ветка 22 начиная с 22.13 либо версии 24+.
-- Поле лицензии пакета изменено с `ISC` на `MIT`.
+- JavaScript migrated to TypeScript with domain, application, adapter, and Telegram responsibilities separated.
+- PostgreSQL repository split by responsibility; shop split into menu, Stars, Platega, and polling modules.
+- Multi-stage Docker build and runtime execution as user `node`.
+- Package identity/links updated to `Hostlife22/ai-bot-with-payments`; compatible dependency ranges refreshed.
+- Node.js requirement aligned with tooling: 22.13+ in the 22 branch, or 24+.
+- Package license changed from `ISC` to `MIT`.
 
-### Исправлено
+### Fixed
 
-- Проверка прав для семейств административных callback-команд.
-- Повторное начисление бонуса рефералу и покупки при конкурентных запросах.
-- Конкурентный перерасход баланса и возврат резерва при обработанной ошибке генерации.
-- Ожидание миграций и закрытие фоновых ресурсов при штатной остановке.
-- Подключение типов Node.js и основного TypeScript-проекта для тестов с `node:crypto` и `node:test`.
-- Удаление устаревших файлов из `dist` перед новой сборкой.
+- Authorization checks across administrator callback families.
+- Concurrent duplicate referral rewards and purchase credits.
+- Concurrent balance overspending and refunds after handled generation failures.
+- Waiting for migrations and closing background resources during graceful shutdown.
+- Node.js type definitions and editor project membership for tests using `node:crypto` and `node:test`.
+- Removal of obsolete `dist` artifacts before compilation.
 
-### Переход на новую версию
+### Upgrade notes
 
-- Старые счета без `purchase_intents` требуют отдельной сверки; автоматическое зачисление для них не выполняется.
-- Резервирование баланса не включает отдельное восстановление после аварийного завершения процесса.
-- Перед обновлением сохраните БД и проверьте [порядок эксплуатации](docs/operations.md).
+- Legacy invoices without `purchase_intents` require separate reconciliation; automatic fulfillment is unavailable for them.
+- Reservation handling has no separate recovery ledger after process crashes.
+- Back up the database before upgrading and review [operations](docs/eng/operations.md).

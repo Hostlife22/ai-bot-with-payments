@@ -5,7 +5,7 @@
     "description": "TypeScript Telegram AI bot with OpenRouter, PostgreSQL, Redis, Telegram Stars and Platega payments.",
     "type": "module",
     "main": "dist/main.js",
-    "license": "ISC",
+    "license": "MIT",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/Hostlife22/ai-bot-with-payments.git"
@@ -32,10 +32,14 @@
         "start": "node --dns-result-order=ipv4first dist/main.js",
         "lint": "eslint src tests",
         "test": "node --import tsx --test tests/*.test.ts",
-        "check": "npm run format:check && npm run typecheck && npm run lint && npm test && npm run build",
-        "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" eslint.config.js",
-        "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" eslint.config.js",
-        "clean": "node --input-type=module -e \"import { rm } from 'node:fs/promises'; await rm('dist', { recursive: true, force: true });\""
+        "check": "npm run format:check && npm run docs:check && npm run typecheck && npm run lint && npm test && npm run build",
+        "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" eslint.config.js \"scripts/**/*.mjs\"",
+        "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" eslint.config.js \"scripts/**/*.mjs\"",
+        "clean": "node --input-type=module -e \"import { rm } from 'node:fs/promises'; await rm('dist', { recursive: true, force: true });\"",
+        "docs:notices": "node scripts/generate-third-party-notices.mjs",
+        "docs:format": "prettier --write README.md README.ru.md README.zh-CN.md CONTRIBUTING.md SECURITY.md ACCESSIBILITY.md CHANGELOG.md \"docs/**/*.md\"",
+        "docs:check": "prettier --check README.md README.ru.md README.zh-CN.md CONTRIBUTING.md SECURITY.md ACCESSIBILITY.md CHANGELOG.md \"docs/**/*.md\" && npm run docs:links",
+        "docs:links": "node scripts/check-doc-links.mjs"
     },
     "dependencies": {
         "bullmq": "^5.81.5",

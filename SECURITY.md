@@ -1,44 +1,44 @@
-# Безопасность
+# Security
 
-## Область поддержки
+**English** · [Русский](docs/ru/security.md) · [简体中文](docs/zh/security.md)
 
-Политика относится к актуальному коду основной ветки репозитория. Отдельный срок поддержки номерных релизов пока не установлен. В отчёте укажите commit hash и версию окружения, чтобы можно было воспроизвести проблему.
+## Scope
 
-Особенно важны обход административных прав, подмена или повторное зачисление платежей, перерасход баланса при конкуренции, утечка секретов и пользовательских данных, а также небезопасная обработка заданий и ответов внешних API.
+This policy covers the current primary branch. A separate support period for numbered releases has not been established. Include a commit hash and environment versions so a report can be reproduced.
 
-## Сообщение об уязвимости
+Relevant issues include administrator authorization bypass, payment substitution or duplicate crediting, concurrent balance overspending, secret/user-data exposure, and unsafe processing of queued jobs or external responses.
 
-Используйте [приватную форму GitHub Security Advisory](https://github.com/Hostlife22/ai-bot-with-payments/security/advisories/new), если private vulnerability reporting включён для репозитория.
+## Reporting a vulnerability
 
-Если форма недоступна, создайте [Issue](https://github.com/Hostlife22/ai-bot-with-payments/issues) только с просьбой предоставить приватный канал. Не прикладывайте детали эксплуатации, токены, платёжные payload, реальные Telegram ID или переписки. Отдельный публично подтверждённый адрес электронной почты для security-отчётов пока не указан.
+Use the [private GitHub Security Advisory form](https://github.com/Hostlife22/ai-bot-with-payments/security/advisories/new) if private vulnerability reporting is enabled.
 
-В приватном отчёте полезны:
+If unavailable, create an [Issue](https://github.com/Hostlife22/ai-bot-with-payments/issues) requesting a private channel only. Do not include exploit details, tokens, payment payloads, real Telegram IDs, or conversations. A separately verified security email address has not been published.
 
-1. Описание затронутого сценария и возможного воздействия.
-2. Commit hash, версии Node.js, PostgreSQL и Redis.
-3. Минимальные шаги воспроизведения на тестовых аккаунтах и сервисах.
-4. Ожидаемое и фактическое поведение, очищенные от секретов логи.
-5. Предложение исправления или регрессионного теста, если оно есть.
+A private report should contain:
 
-Проверяйте только принадлежащие вам окружения или окружения, для которых есть разрешение. Для воспроизведения используйте тестовые платежи и данные; не извлекайте чужие переписки и не изменяйте чужие балансы.
+1. The affected use case and potential impact.
+2. Commit hash and Node.js/PostgreSQL/Redis versions.
+3. Minimal reproduction steps using test accounts and services.
+4. Expected/actual behavior and sanitized logs.
+5. A proposed fix or regression test, if available.
 
-Не публикуйте детали до согласования раскрытия с сопровождающим проекта. Фиксированный срок ответа или устранения не заявлен.
+Test only environments you own or have permission to assess. Use test payments and data; do not extract others' conversations or change their balances. Coordinate public disclosure with the maintainer. No fixed response or remediation timeline is promised.
 
-## Секреты и пользовательские данные
+## Secrets and user data
 
-- Храните токены Telegram/OpenRouter, ключи Platega и пароли БД в окружении. `.env` исключён из Git и Docker-контекста.
-- После утечки замените соответствующий секрет у провайдера и обновите окружение приложения; удаление строки из последнего коммита не отзывает ключ.
-- PostgreSQL, резервные копии и SQL-дампы содержат пользовательские данные. Не добавляйте их в PR, Issue и журналы общего доступа.
-- Для разработки и интеграционных тестов используйте отдельные токены, БД и Redis. Redis-тест удаляет свою очередь в переданной базе.
+- Store Telegram/OpenRouter tokens, Platega credentials, and database passwords in the environment. `.env` is excluded from Git and Docker build context.
+- If a secret leaks, rotate it with the provider and update the application environment. Removing it from the latest commit does not revoke it.
+- PostgreSQL, backups, and SQL dumps contain user data. Keep them out of PRs, public Issues, and shared logs.
+- Use separate development/test credentials, PostgreSQL, and Redis. Queue tests remove their queue in the supplied Redis database.
 
-## Обновления и проверка исправлений
+## Updates and validation
 
-Устанавливайте зависимости через `npm ci`. Проверка runtime-дерева:
+Install with `npm ci`. To inspect runtime dependencies:
 
 ```sh
 npm audit --omit=dev
 ```
 
-Результат аудита зависимостей не проверяет бизнес-логику платежей или прав. Для исправления запустите `npm run check` и затронутые интеграционные сценарии. После изменения зависимостей обновите [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Dependency auditing does not validate payment or authorization logic. Run `npm run check` and relevant integration scenarios for a fix. Update [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) after dependency changes.
 
-Известные эксплуатационные границы, включая резервы после аварийного завершения, хранение Redis и локальные сессии, описаны в [operations.md](docs/operations.md). Для доступности интерфейса используется отдельный процесс из [ACCESSIBILITY.md](ACCESSIBILITY.md).
+Crash reservations, Redis storage, and local session boundaries are documented in [operations](docs/eng/operations.md). Interface accessibility reports follow [ACCESSIBILITY.md](ACCESSIBILITY.md).

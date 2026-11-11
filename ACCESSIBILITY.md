@@ -1,50 +1,47 @@
-# Доступность
+# Accessibility
 
-## Область документа
+**English** · [Русский](docs/ru/accessibility.md) · [简体中文](docs/zh/accessibility.md)
 
-Пользовательский интерфейс проекта — сообщения, inline-кнопки и клавиатуры Telegram. Отрисовка, масштабирование, навигация клавиатурой и взаимодействие с системным экранным диктором зависят от конкретного клиента Telegram и устройства. Собственного веб-интерфейса в репозитории нет.
+## Scope
 
-Этот документ описывает реализованное поведение и проверки для изменений интерфейса. Результаты ручного тестирования экранными дикторами и формальная оценка соответствия стандартам пока не опубликованы.
+The project interface consists of Telegram messages, inline buttons, and reply keyboards. Rendering, scaling, keyboard navigation, and assistive-technology interaction depend on the Telegram client and device. There is no standalone web interface.
 
-## Текущее поведение
+This document describes current behavior and checks for interface changes. Manual screen-reader results and a formal standards assessment have not been published.
 
-- Основные действия представлены текстовыми подписями: профиль, магазин, помощь, настройки AI и административные меню.
-- Балансы, суммы и результаты действий передаются текстом, а не только изображением.
-- Сообщения об ограничении длины, ожидании и недостатке баланса содержат пояснение.
-- AI-текст разбивается на сообщения до 4096 символов; изображения отправляются с текстовой подписью.
-- Подготовка рассылки включает предпросмотр перед подтверждением отправки.
+## Current behavior
 
-Эмодзи используются в меню, профиле и статусах. Часть коротких кнопок содержит эмодзи и число; понятность таких подписей необходимо проверять в контексте всего меню.
+- Primary actions have text labels: profile, shop, help, AI settings, and administrator menus.
+- Balances, prices, and operation results are conveyed as text rather than images alone.
+- Length limits, waiting periods, and insufficient balances have explanatory messages.
+- AI text is split into messages up to 4096 characters; photos have text captions.
+- Broadcast preparation includes a preview before confirmation.
 
-## Ограничения
+Emoji appear in menus, profiles, and statuses. Some compact buttons contain emoji and a number; their meaning must be checked in the context of the complete menu.
 
-- Основные служебные тексты написаны на русском; общей системы локализации нет.
-- Некоторые действия заменяют существующее сообщение, поэтому повторное озвучивание и положение фокуса нужно проверять в клиенте Telegram.
-- Для фотографий нет отдельного поля с гарантированным описанием содержимого. Подпись AI-ответа не всегда является содержательным альтернативным текстом.
-- Голосовые ответы и отдельный аудиорежим не реализованы.
-- Качество читаемости сгенерированного AI-текста не контролируется отдельной проверкой доступности.
-- Фиксированный антиспам-интервал требует ожидания; отдельной настройки темпа взаимодействия нет.
+## Limitations
 
-## Проверка изменений меню
+- Service text is primarily Russian; there is no general localization system.
+- Some actions edit an existing message, requiring client-specific checks of announcements and focus.
+- Photos have no separate field guaranteeing an image description. An AI caption is not always meaningful alternative text.
+- Voice responses and a separate audio mode are not implemented.
+- Generated AI text is not checked by a dedicated accessibility validator.
+- The fixed cooldown requires waiting; interaction pace has no separate user setting.
 
-Перед PR с изменениями интерфейса вручную проверьте:
+## Manual checks for menu changes
 
-1. Достижимость `/start`, профиля, помощи, магазина и возврата из вложенных меню.
-2. Чтение подписей и результатов действий экранным диктором, доступным на тестовом устройстве.
-3. Понятность кнопок без опоры только на эмодзи, цвет или расположение.
-4. Навигацию клавиатурой в клиенте Telegram, который её поддерживает.
-5. Длинные названия, большие числовые значения, сообщения об ошибках и подписи фотографий.
-6. Сохранение понятного контекста после редактирования сообщения, отмены ввода и смены роли.
+Before submitting interface changes, check:
 
-Используйте короткие действия в подписях, явные пояснения ошибок и подписи к значимым изображениям. Не передавайте смысл только цветом или декоративным символом. Проверки типов и тесты обработчиков дополняйте ручной проверкой клиента.
+1. Access to `/start`, profile, help, shop, and return navigation.
+2. Button labels and action results with a screen reader available on the test device.
+3. Meaning without relying solely on emoji, color, or position.
+4. Keyboard navigation in a Telegram client that supports it.
+5. Long names, large numbers, error messages, and photo captions.
+6. Context after message edits, input cancellation, and role changes.
 
-## Сообщение о проблеме
+Use short action labels, explicit error explanations, and captions for meaningful images. Supplement type checks and handler tests with manual client testing.
 
-Создайте [Issue](https://github.com/Hostlife22/ai-bot-with-payments/issues) с указанием:
+## Reporting an issue
 
-- Меню или действия, где возникла трудность.
-- Клиента Telegram, операционной системы и используемого способа навигации.
-- Ожидаемого и фактического поведения; экранного диктора и его версии, если это важно.
-- Очищенного скриншота или записи, если они помогают воспроизведению.
+Create an [Issue](https://github.com/Hostlife22/ai-bot-with-payments/issues) describing the menu/action, Telegram client, operating system, navigation method, expected/actual behavior, and screen reader/version when relevant. Sanitized screenshots or recordings can help.
 
-Медицинские сведения, токены, платёжные данные и реальные переписки не требуются. Если проблема одновременно раскрывает уязвимость или чужие данные, используйте приватный порядок из [SECURITY.md](SECURITY.md).
+Medical information, credentials, payment data, and real conversations are not needed. If the issue also exposes a vulnerability or another user's information, use the private process in [SECURITY.md](SECURITY.md).
