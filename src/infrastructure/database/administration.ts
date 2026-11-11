@@ -69,18 +69,21 @@ export function createAdminRepository(pool: Pool): AdminRepository {
         const api_cost = required(costRes.rows[0]).api_cost;
         return { users, funnel, api_costs_time, revenue, api_cost };
     }
+
     async function getAllUserIds() {
         const res = await pool.query<{
             telegram_id: string;
         }>('SELECT telegram_id FROM users');
         return res.rows.map((row) => row.telegram_id);
     }
+
     async function getUsersTotal() {
         const res = await pool.query<{
             count: string;
         }>('SELECT COUNT(*) FROM users');
         return parseInt(required(res.rows[0]).count, DECIMAL_RADIX);
     }
+
     async function getUsersPage(limit: number, offset: number) {
         const res = await pool.query<
             Pick<User, 'telegram_id' | 'first_name' | 'username' | 'is_blocked'>
@@ -90,6 +93,7 @@ export function createAdminRepository(pool: Pool): AdminRepository {
         );
         return res.rows;
     }
+
     async function getPaymentHistory(userId: UserId) {
         const res = await pool.query<Payment>(
             'SELECT * FROM payments WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2',
@@ -97,9 +101,11 @@ export function createAdminRepository(pool: Pool): AdminRepository {
         );
         return res.rows;
     }
+
     async function logPaymentFailure(errorText: string) {
         await pool.query('INSERT INTO payment_failures (error_text) VALUES ($1)', [errorText]);
     }
+
     return {
         getAdminStats,
         getAllUserIds,

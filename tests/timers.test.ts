@@ -15,11 +15,13 @@ void test('shutdown waits for active scheduled work and prevents new tasks', asy
         release = resolve;
     });
     let done = false;
+
     timers.after(async () => {
         required(begin)();
         await finish;
         done = true;
     }, 0);
+
     await started;
     const closing = timers.close();
     assert.equal(done, false);

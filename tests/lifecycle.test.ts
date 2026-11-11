@@ -25,6 +25,7 @@ void test('concurrent shutdown requests share completion and close database afte
     lifecycle.attachWorkers([
         {
             waitUntilReady: async () => undefined,
+
             close: async () => {
                 events.push('worker:start');
                 await active;
@@ -54,6 +55,7 @@ void test('a failed worker cleanup does not prevent database cleanup', async () 
     lifecycle.attachWorkers([
         {
             waitUntilReady: async () => undefined,
+
             close: async () => {
                 throw new Error('Test worker failure');
             },

@@ -30,10 +30,10 @@
         "typecheck": "tsc --noEmit && tsc -p tsconfig.site.json",
         "dev": "node --env-file=.env --import tsx src/main.ts",
         "start": "node --dns-result-order=ipv4first dist/main.js",
-        "lint": "eslint src tests",
+        "lint": "eslint src tests scripts eslint.config.js .vitepress",
         "test": "node --import tsx --test tests/*.test.ts",
         "check": "npm run format:check && npm run docs:check && npm run typecheck && npm run lint && npm test && npm run build",
-        "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" eslint.config.js \"scripts/**/*.mjs\" \".vitepress/**/*.mts\" \".github/**/*.yml\"",
+        "format": "npm run lint:fix && prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" eslint.config.js \"scripts/**/*.mjs\" \".vitepress/**/*.mts\" \".github/**/*.yml\"",
         "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" eslint.config.js \"scripts/**/*.mjs\" \".vitepress/**/*.mts\" \".github/**/*.yml\"",
         "clean": "node --input-type=module -e \"import { rm } from 'node:fs/promises'; await rm('dist', { recursive: true, force: true });\"",
         "docs:notices": "node scripts/generate-third-party-notices.mjs",
@@ -44,7 +44,8 @@
         "docs:build": "npm run docs:prepare && vitepress build .docs-site",
         "docs:preview": "vitepress preview .docs-site --host 127.0.0.1",
         "docs:test": "node scripts/check-docs-site.mjs",
-        "release:prepare": "node scripts/prepare-release.mjs"
+        "release:prepare": "node scripts/prepare-release.mjs",
+        "lint:fix": "eslint src tests scripts eslint.config.js .vitepress --fix"
     },
     "dependencies": {
         "bullmq": "^5.81.5",

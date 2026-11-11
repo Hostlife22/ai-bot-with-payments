@@ -7,8 +7,9 @@ import { nonNegativeInteger } from '@domain/validation';
 
 export function redisConnection(value: string): ConnectionOptions {
     const url = new URL(value);
-    if (!['redis:', 'rediss:'].includes(url.protocol))
+    if (!['redis:', 'rediss:'].includes(url.protocol)) {
         throw new Error(errorMessages.invalidRedisProtocol);
+    }
     return {
         host: url.hostname,
         port: url.port ? nonNegativeInteger(url.port, fieldNames.redisPort) : REDIS_DEFAULTS.port,

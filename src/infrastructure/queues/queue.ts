@@ -20,6 +20,7 @@ export function createAiQueue({ redisUrl, repository, ai, deliver }: AiQueueDepe
         },
     });
     aiQueue.on('error', (error) => console.error(logMessages.aiQueueFailed, error));
+
     function startWorker() {
         const worker = new Worker<AiJob>(
             QUEUES.aiName,
@@ -45,7 +46,9 @@ export function createAiQueue({ redisUrl, repository, ai, deliver }: AiQueueDepe
                     }
                     await deliver(data, response);
                 } catch (error) {
-                    if (reserved) await repository.refundBalance(data.userId, 'text');
+                    if (reserved) {
+                        await repository.refundBalance(data.userId, 'text');
+                    }
                     await deliver(data, {
                         text: aiMessages.generationFailed,
                         photo: null,
@@ -61,5 +64,6 @@ export function createAiQueue({ redisUrl, repository, ai, deliver }: AiQueueDepe
         );
         return worker;
     }
+
     return { aiQueue, startWorker };
 }

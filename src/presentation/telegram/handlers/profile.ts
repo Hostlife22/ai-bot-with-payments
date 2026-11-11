@@ -25,20 +25,26 @@ export function setupProfile(
         getSetting,
     } = repository;
     bot.hears(commonMessages.profile, (ctx) => showProfile(ctx, userState, themeConfig));
+
     bot.action('menu_profile', async (ctx) => {
         await ctx.answerCbQuery();
         return showProfile(ctx, userState, themeConfig);
     });
+
     bot.hears(commonMessages.referrals, showRefs);
+
     bot.action('menu_refs', async (ctx) => {
         await ctx.answerCbQuery();
         return showRefs(ctx);
     });
+
     bot.hears(commonMessages.dailyBonus, showDailyBonus);
+
     bot.action('claim_daily_bonus', async (ctx) => {
         await ctx.answerCbQuery().catch(() => {});
         return showDailyBonus(ctx);
     });
+
     bot.action('check_bonus_sub', async (ctx) => {
         const channelId = await getSetting('bonus_channel_id', '');
         if (channelId && channelId.length >= TELEGRAM_LIMITS.minimumChannelIdLength) {
@@ -67,6 +73,7 @@ export function setupProfile(
             });
         }
     });
+
     bot.action('enter_promocode', async (ctx) => {
         userState[actorId(ctx)] = 'WAITING_FOR_PROMOCODE';
         await ctx.answerCbQuery();
@@ -76,6 +83,7 @@ export function setupProfile(
             },
         });
     });
+
     async function showDailyBonus(ctx: Context) {
         const channelId = await getSetting('bonus_channel_id', '');
         const channelUrl = await getSetting('bonus_channel_url', '');
@@ -104,8 +112,11 @@ export function setupProfile(
             });
         }
     }
+
     async function showProfile(ctx: Context, userState: UserStates, themeConfig: Themes) {
-        if (userState) delete userState[actorId(ctx)];
+        if (userState) {
+            delete userState[actorId(ctx)];
+        }
         const userId = actorId(ctx);
         let user = await getUser(userId);
         if (!user) {
@@ -125,16 +136,20 @@ export function setupProfile(
         } else {
             percent = Math.min(PERCENT, Math.round((user.text_balance / maxLevel) * PERCENT));
             fillCount = Math.floor((percent / PERCENT) * UI_FORMAT.progressSegments);
-            if (user.text_balance > 0 && fillCount === 0) fillCount = 1;
-            if (!user.has_purchased && user.text_balance === 0)
+            if (user.text_balance > 0 && fillCount === 0) {
+                fillCount = 1;
+            }
+            if (!user.has_purchased && user.text_balance === 0) {
                 statusText = profileMessages.emptyBalanceStatus;
-            else if (user.text_balance > UI_FORMAT.profileStatusThresholds.high)
+            } else if (user.text_balance > UI_FORMAT.profileStatusThresholds.high) {
                 statusText = theme.statuses[3];
-            else if (user.text_balance > UI_FORMAT.profileStatusThresholds.medium)
+            } else if (user.text_balance > UI_FORMAT.profileStatusThresholds.medium) {
                 statusText = theme.statuses[2];
-            else if (user.text_balance > UI_FORMAT.profileStatusThresholds.low)
+            } else if (user.text_balance > UI_FORMAT.profileStatusThresholds.low) {
                 statusText = theme.statuses[1];
-            else statusText = theme.statuses[0];
+            } else {
+                statusText = theme.statuses[0];
+            }
         }
         const progressBar =
             theme.fill.repeat(fillCount) +
@@ -162,6 +177,7 @@ export function setupProfile(
         }
         return ctx.reply(msg, { parse_mode: 'Markdown', reply_markup: kb.reply_markup });
     }
+
     async function showRefs(ctx: Context) {
         const userId = actorId(ctx);
         const refCount = await getReferralsCount(userId);

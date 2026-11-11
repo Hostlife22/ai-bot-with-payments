@@ -17,6 +17,7 @@ export function registerMenuShop(runtime: ShopMenuDependencies) {
     const { bot, repository, catalog } = runtime;
     const { getPackageData } = catalog;
     const { getSetting, setStoreOpened } = repository;
+
     async function sendInvoiceHelper(ctx: Context) {
         try {
             const user = await repository.requireUser(actorId(ctx));
@@ -31,15 +32,18 @@ export function registerMenuShop(runtime: ShopMenuDependencies) {
             const lite = await getPackageData('lite');
             const medium = await getPackageData('medium');
             const hard = await getPackageData('hard');
+
             const calcPrice = (price: number) =>
                 discount > 0
                     ? Math.max(CATALOG.minimumPrice, Math.round(price * (1 - discount / PERCENT)))
                     : price;
+
             const displayPrice = (pack: PackageData): PackageData => ({
                 ...pack,
                 rub: calcPrice(pack.rub),
                 stars: calcPrice(pack.stars),
             });
+
             const msg =
                 shopMessages.heading +
                 (discount > 0 ? shopMessages.discount(discount) : ``) +
@@ -109,12 +113,15 @@ export function registerMenuShop(runtime: ShopMenuDependencies) {
             return ctx.reply(shopMessages.renderError);
         }
     }
+
     bot.command('buy', sendInvoiceHelper);
+
     bot.action('trigger_buy', async (ctx) => {
         await setStoreOpened(actorId(ctx)).catch(() => {});
         await ctx.answerCbQuery().catch(() => {});
         return sendInvoiceHelper(ctx);
     });
+
     bot.action(/select_pay_([a-z0-9]+)/, async (ctx) => {
         try {
             const user = await repository.requireUser(actorId(ctx));
@@ -131,9 +138,13 @@ export function registerMenuShop(runtime: ShopMenuDependencies) {
                 );
             }
             let title = '';
-            if (pkgName.startsWith('t')) title = shopMessages.textPackageTitle;
-            else if (pkgName.startsWith('i')) title = shopMessages.imagePackageTitle;
-            else title = shopMessages.comboTitle(pkgName.toUpperCase());
+            if (pkgName.startsWith('t')) {
+                title = shopMessages.textPackageTitle;
+            } else if (pkgName.startsWith('i')) {
+                title = shopMessages.imagePackageTitle;
+            } else {
+                title = shopMessages.comboTitle(pkgName.toUpperCase());
+            }
             const kb = Markup.inlineKeyboard([
                 [Markup.button.callback(shopMessages.starsButton(stars), `pay_stars_${pkgName}`)],
                 [

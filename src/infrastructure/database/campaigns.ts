@@ -11,6 +11,7 @@ export function createCampaignRepository(pool: Pool): CampaignRepository {
             userId,
         ]);
     }
+
     async function getUsersForRetargeting24h() {
         const res = await pool.query<{
             telegram_id: string;
@@ -26,11 +27,13 @@ export function createCampaignRepository(pool: Pool): CampaignRepository {
         );
         return res.rows.map((r) => r.telegram_id);
     }
+
     async function mark24hPromoSent(userId: UserId) {
         await pool.query('UPDATE users SET has_received_24h_promo = TRUE WHERE telegram_id = $1', [
             userId,
         ]);
     }
+
     async function getUsersForRetargetingStore() {
         const res = await pool.query<{
             telegram_id: string;
@@ -46,12 +49,14 @@ export function createCampaignRepository(pool: Pool): CampaignRepository {
         );
         return res.rows.map((r) => r.telegram_id);
     }
+
     async function markStorePromoSent(userId: UserId) {
         await pool.query(
             'UPDATE users SET has_received_store_promo = TRUE WHERE telegram_id = $1',
             [userId],
         );
     }
+
     async function getUsersForBonusNotify() {
         const res = await pool.query<{
             telegram_id: string;
@@ -66,9 +71,11 @@ export function createCampaignRepository(pool: Pool): CampaignRepository {
         );
         return res.rows.map((r) => r.telegram_id);
     }
+
     async function markBonusNotified(userId: UserId) {
         await pool.query('UPDATE users SET bonus_notified = TRUE WHERE telegram_id = $1', [userId]);
     }
+
     return {
         setStoreOpened,
         getUsersForRetargeting24h,

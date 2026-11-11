@@ -10,6 +10,7 @@ export function createSettingsRepository(pool: Pool): SettingsRepository {
         }>("SELECT value FROM global_settings WHERE key = 'free_mode_enabled'");
         return res.rows[0]?.value === 'true';
     }
+
     async function toggleFreeMode(isEnabled: boolean) {
         await pool.query(
             "INSERT INTO global_settings (key, value) VALUES ('free_mode_enabled', $1) " +
@@ -17,6 +18,7 @@ export function createSettingsRepository(pool: Pool): SettingsRepository {
             [String(isEnabled)],
         );
     }
+
     async function getSetting(
         key: string,
         defaultValue: string | number | boolean,
@@ -34,14 +36,18 @@ export function createSettingsRepository(pool: Pool): SettingsRepository {
         }
         return applyEscape ? escapeHtml(val) : val;
     }
+
     async function setSetting(key: string, value: string | number | boolean) {
         await pool.query(
             'INSERT INTO global_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
             [key, String(value)],
         );
     }
+
     function escapeHtml(unsafe: string) {
-        if (typeof unsafe !== 'string') return unsafe;
+        if (typeof unsafe !== 'string') {
+            return unsafe;
+        }
         return unsafe
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -49,5 +55,6 @@ export function createSettingsRepository(pool: Pool): SettingsRepository {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
     }
+
     return { isFreeModeEnabled, toggleFreeMode, getSetting, setSetting };
 }

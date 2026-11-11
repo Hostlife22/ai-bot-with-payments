@@ -12,9 +12,12 @@ import { nonNegativeInteger, required } from '@domain/validation';
 export function isPackageName(value: string): value is PackageName {
     return Object.hasOwn(packageDefaults, value);
 }
+
 export function parsePackage(value: string): PackageData {
     const parts = value.split('_');
-    if (parts.length !== CATALOG.fields) throw new Error(errorMessages.invalidPackageShape);
+    if (parts.length !== CATALOG.fields) {
+        throw new Error(errorMessages.invalidPackageShape);
+    }
     const [stars, rub, text, img] = parts.map((part) =>
         nonNegativeInteger(part, fieldNames.packageValue),
     );
@@ -24,15 +27,19 @@ export function parsePackage(value: string): PackageData {
         text: required(text),
         img: required(img),
     };
-    if (result.stars < 1 || result.rub < 1 || result.text + result.img < 1)
+    if (result.stars < 1 || result.rub < 1 || result.text + result.img < 1) {
         throw new Error(errorMessages.invalidPackageContents);
+    }
     return result;
 }
+
 export function discountedPrice(price: number, discount: number): number {
-    if (!Number.isFinite(discount) || discount < 0 || discount > PERCENT)
+    if (!Number.isFinite(discount) || discount < 0 || discount > PERCENT) {
         throw new Error(errorMessages.invalidDiscount);
+    }
     return Math.max(CATALOG.minimumPrice, Math.round(price * (1 - discount / PERCENT)));
 }
+
 export function createCatalog(repository: Pick<Repository, 'getSetting' | 'setSetting'>): Catalog {
     async function getSafePkg(key: string, defaultValue: string): Promise<string[]> {
         let value = await repository.getSetting(key, defaultValue);
@@ -47,9 +54,13 @@ export function createCatalog(repository: Pick<Repository, 'getSetting' | 'setSe
         parsePackage(value);
         return value.split('_');
     }
+
     async function getPackageData(name: string): Promise<PackageData> {
-        if (!isPackageName(name)) throw new Error(errorMessages.unknownPackage);
+        if (!isPackageName(name)) {
+            throw new Error(errorMessages.unknownPackage);
+        }
         return parsePackage((await getSafePkg(`pkg_${name}`, packageDefaults[name])).join('_'));
     }
+
     return { getSafePkg, getPackageData };
 }

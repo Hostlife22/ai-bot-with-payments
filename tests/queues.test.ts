@@ -20,7 +20,9 @@ void test('queue input is validated before use', () => {
         42,
     );
 });
+
 const redisUrl = process.env.TEST_REDIS_URL;
+
 void describe('Redis AI queue', { skip: !redisUrl }, () => {
     let balance = 1;
     let mode: 'success' | 'failure' | 'uncharged' = 'success';
@@ -29,20 +31,26 @@ void describe('Redis AI queue', { skip: !redisUrl }, () => {
         redisUrl: redisUrl ?? 'redis://localhost',
         repository: {
             reserveBalance: async () => {
-                if (balance <= 0) return false;
+                if (balance <= 0) {
+                    return false;
+                }
                 balance--;
                 return true;
             },
+
             refundBalance: async () => {
                 balance++;
             },
         },
         ai: {
             generateResponse: async () => {
-                if (mode === 'failure') throw new Error('Provider unavailable');
+                if (mode === 'failure') {
+                    throw new Error('Provider unavailable');
+                }
                 return { text: 'OK', photo: null, chargeText: mode !== 'uncharged' };
             },
         },
+
         deliver: async (_job, response) => {
             delivered.push(response);
         },
@@ -51,21 +59,25 @@ void describe('Redis AI queue', { skip: !redisUrl }, () => {
         connection: redisConnection(redisUrl ?? 'redis://localhost'),
     });
     const worker = queues.startWorker();
+
     before(async () => {
         await events.waitUntilReady();
         await worker.waitUntilReady();
     });
+
     beforeEach(async () => {
         balance = 1;
         mode = 'success';
         delivered.length = 0;
     });
+
     after(async () => {
         await worker.close();
         await queues.aiQueue.obliterate({ force: true });
         await queues.aiQueue.close();
         await events.close();
     });
+
     void test('successful job debits once and delivers a response', async () => {
         const job = await queues.aiQueue.add('ask-ai', {
             userId: 42,

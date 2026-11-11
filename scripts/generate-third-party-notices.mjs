@@ -7,7 +7,11 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const npmCli = process.env.npm_execpath;
-if (!npmCli) throw new Error('Run this generator with npm run docs:notices.');
+
+if (!npmCli) {
+    throw new Error('Run this generator with npm run docs:notices.');
+}
+
 const paths = execFileSync(process.execPath, [npmCli, 'ls', '--omit=dev', '--all', '--parseable'], {
     cwd: root,
     encoding: 'utf8',
@@ -16,9 +20,12 @@ const paths = execFileSync(process.execPath, [npmCli, 'ls', '--omit=dev', '--all
     .trim()
     .split(/\r?\n/);
 const entries = new Map();
+
 function addPackage(directory, scope) {
     const location = realpathSync(directory);
-    if (location === realpathSync(root)) return;
+    if (location === realpathSync(root)) {
+        return;
+    }
     const existing = entries.get(location);
     if (existing) {
         existing.scopes.add(scope);
@@ -27,15 +34,21 @@ function addPackage(directory, scope) {
     const metadata = JSON.parse(readFileSync(join(location, 'package.json'), 'utf8'));
     entries.set(location, { location, metadata, scopes: new Set([scope]) });
 }
-for (const directory of paths) addPackage(directory, 'runtime');
+
+for (const directory of paths) {
+    addPackage(directory, 'runtime');
+}
+
 for (const name of Object.keys(
     process.argv.includes('--production') ? {} : (manifest.devDependencies ?? {}),
 )) {
     const directory = join(root, 'node_modules', name);
-    if (!existsSync(join(directory, 'package.json')))
+    if (!existsSync(join(directory, 'package.json'))) {
         throw new Error(`Install development dependencies first: ${name}`);
+    }
     addPackage(directory, 'direct development tool');
 }
+
 const packages = [...entries.values()].sort(
     (a, b) =>
         a.metadata.name.localeCompare(b.metadata.name, 'en') ||
@@ -43,6 +56,7 @@ const packages = [...entries.values()].sort(
 );
 const texts = new Map();
 const missing = [];
+
 function noticeFiles(directory) {
     const result = [];
     for (const entry of readdirSync(directory, { withFileTypes: true }).sort((a, b) =>
@@ -51,20 +65,26 @@ function noticeFiles(directory) {
         if (
             entry.isFile() &&
             /^(?:licen[cs]e|copying|notice|copyright)(?:[.\-_]|$)/i.test(entry.name)
-        )
+        ) {
             result.push(entry.name);
+        }
         if (entry.isDirectory() && /^licen[cs]es?$/i.test(entry.name)) {
             for (const child of readdirSync(join(directory, entry.name), {
                 withFileTypes: true,
             }).sort((a, b) => a.name.localeCompare(b.name, 'en'))) {
-                if (child.isFile()) result.push(`${entry.name}/${child.name}`);
+                if (child.isFile()) {
+                    result.push(`${entry.name}/${child.name}`);
+                }
             }
         }
     }
     return result;
 }
+
 const escapeCell = (value) => String(value).replaceAll('|', '\\|').replaceAll('\n', ' ');
+
 const rows = [];
+
 for (const entry of packages) {
     const { name, version, license } = entry.metadata;
     const identifiers = [];
@@ -72,23 +92,31 @@ for (const entry of packages) {
         const content = readFileSync(join(entry.location, filename), 'utf8')
             .replaceAll('\r\n', '\n')
             .trim();
-        if (!content) continue;
-        if (!texts.has(content))
+        if (!content) {
+            continue;
+        }
+        if (!texts.has(content)) {
             texts.set(content, {
                 id: `notice-${String(texts.size + 1).padStart(3, '0')}`,
                 sources: [],
             });
+        }
         const notice = texts.get(content);
         notice.sources.push(`${name}@${version}: ${filename}`);
-        if (!identifiers.includes(notice.id)) identifiers.push(notice.id);
+        if (!identifiers.includes(notice.id)) {
+            identifiers.push(notice.id);
+        }
     }
-    if (!identifiers.length) missing.push(entry);
+    if (!identifiers.length) {
+        missing.push(entry);
+    }
     const declared = typeof license === 'string' ? license : (license?.type ?? 'Not declared');
     const source = `https://www.npmjs.com/package/${name}/v/${version}`;
     rows.push(
         `| [${escapeCell(name)}](${source}) | ${escapeCell(version)} | ${escapeCell(declared)} | ${[...entry.scopes].join(', ')} | ${identifiers.map((id) => `[${id}](#${id})`).join(', ') || 'Not included in installed package'} |`,
     );
 }
+
 const lockHash = createHash('sha256')
     .update(readFileSync(join(root, 'package-lock.json')))
     .digest('hex');
@@ -114,6 +142,7 @@ ${rows.join('\n')}
 ## Packages without bundled notice files
 
 `;
+
 if (missing.length) {
     output +=
         'The installed artifacts for the following packages do not contain a recognized license/notice file. The inventory records their declared metadata; a license text or copyright holder has not been inferred from another package. Review the exact upstream release when preparing a distribution.\n\n';
@@ -122,13 +151,18 @@ if (missing.length) {
         const attribution = typeof author === 'string' ? author : author?.name;
         output += `- \`${name}@${version}\`${attribution ? ` — author metadata: ${escapeCell(attribution)}` : ''}.\n`;
     }
-} else output += 'Every inventoried package includes at least one recognized notice file.\n';
+} else {
+    output += 'Every inventoried package includes at least one recognized notice file.\n';
+}
+
 output += '\n## Included upstream texts\n\n';
+
 for (const [content, notice] of texts) {
     const maximum = Math.max(2, ...[...content.matchAll(/`+/g)].map((match) => match[0].length));
     const fence = '`'.repeat(maximum + 1);
     output += `### ${notice.id}\n\n${notice.sources.map((source) => `- \`${source}\``).join('\n')}\n\n${fence}text\n${content}\n${fence}\n\n`;
 }
+
 writeFileSync(join(root, 'THIRD_PARTY_NOTICES.md'), output.trimEnd() + '\n');
 console.log(
     `Generated notices: ${packages.length} packages, ${texts.size} texts, ${missing.length} packages without bundled notice files.`,

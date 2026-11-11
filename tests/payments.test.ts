@@ -25,6 +25,7 @@ const proof: PaymentProof = {
     transactionId: 'telegram-charge',
     provider: 'stars',
 };
+
 void test('payment proof must match owner, provider, amount, currency and transaction', () => {
     assert.doesNotThrow(() => validatePayment(intent, proof));
     for (const invalid of [
@@ -33,7 +34,8 @@ void test('payment proof must match owner, provider, amount, currency and transa
         { currency: 'RUB' },
         { provider: 'platega' as const },
         { transactionId: '' },
-    ])
+    ]) {
         assert.throws(() => validatePayment(intent, { ...proof, ...invalid }));
+    }
     assert.throws(() => validatePayment({ ...intent, provider_tx_id: 'another-charge' }, proof));
 });

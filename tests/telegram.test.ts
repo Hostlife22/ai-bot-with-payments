@@ -25,6 +25,7 @@ const user: User = {
     daily_api_cost: '0',
     total_api_cost: '0',
 };
+
 function fixture(overrides: Partial<User> = {}) {
     const bot = new Telegraf('test');
     bot.botInfo = {
@@ -62,18 +63,22 @@ function fixture(overrides: Partial<User> = {}) {
         bot,
         repository: {
             requireUser: async () => ({ ...user, ...overrides }),
+
             createUser: async () => {
                 writes++;
             },
+
             updateUserMeta: async () => undefined,
         },
         config: { adminId: 99 },
         sessions: { touchedAt: {} },
     });
+
     bot.use((_ctx, next) => {
         reached = true;
         return next();
     });
+
     async function callback(data: string): Promise<void> {
         await bot.handleUpdate({
             update_id: 1,
@@ -91,6 +96,7 @@ function fixture(overrides: Partial<User> = {}) {
             },
         });
     }
+
     return {
         bot,
         buttons,
@@ -101,6 +107,7 @@ function fixture(overrides: Partial<User> = {}) {
         reached: () => reached,
     };
 }
+
 void test('forged admin callback is rejected before database mutations', async () => {
     const app = fixture();
     await app.callback('p_del_1');

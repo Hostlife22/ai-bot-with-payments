@@ -9,26 +9,31 @@ import { createPurchaseStore } from '@database/purchases';
 import { createRepository } from '@database/repository';
 
 const url = process.env.TEST_DATABASE_URL;
+
 void describe('PostgreSQL transactions and migrations', { skip: !url }, () => {
     const schema = `test_${randomUUID().replaceAll('-', '')}`;
     const control = new pg.Pool({ connectionString: url });
     const pool = new pg.Pool({ connectionString: url, options: `-c search_path=${schema}` });
     const repository = createRepository(pool);
     const purchases = createPurchaseStore(pool);
+
     before(async () => {
         await control.query(`CREATE SCHEMA ${schema}`);
         await repository.initialize();
     });
+
     after(async () => {
         await pool.end();
         await control.query(`DROP SCHEMA ${schema} CASCADE`);
         await control.end();
     });
+
     beforeEach(async () => {
         await pool.query(
             'TRUNCATE users, messages, payments, purchase_intents, promocodes, user_promocodes RESTART IDENTITY CASCADE',
         );
     });
+
     void test('migrations run twice without losing user data', async () => {
         await repository.createUser(42);
         await repository.initialize();
@@ -124,7 +129,9 @@ void describe('PostgreSQL transactions and migrations', { skip: !url }, () => {
         assert.equal((await repository.getPaymentHistory(42)).length, 0);
     });
     void test('campaign windows and notification flags filter eligible users', async () => {
-        for (const id of [42, 43, 44]) await repository.createUser(id);
+        for (const id of [42, 43, 44]) {
+            await repository.createUser(id);
+        }
         await pool.query(`UPDATE users SET
             last_active_at = NOW() - INTERVAL '25 hours',
             store_opened_at = NOW() - INTERVAL '3 hours'

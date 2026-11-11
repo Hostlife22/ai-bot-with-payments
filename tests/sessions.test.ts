@@ -22,7 +22,9 @@ void test('session stores are isolated and expiration removes all state for inac
     sessions.lastMessageTime.old = 1;
     sessions.adminTargetUser.old = 42;
     pruneSessions(sessions, 100, 10);
-    for (const store of Object.values(sessions)) assert.equal('old' in store, false);
+    for (const store of Object.values(sessions)) {
+        assert.equal('old' in store, false);
+    }
     assert.equal(sessions.userState.active, 'WAITING_FOR_CUSTOM_PROMPT');
     assert.deepEqual(other.userState, {});
 });

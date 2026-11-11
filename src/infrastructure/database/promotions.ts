@@ -23,18 +23,21 @@ export function createPromotionRepository(pool: Pool): PromotionRepository {
         max_uses_per_user: number = PROMOTIONS.defaultUsesPerUser,
         is_new_users_only = false,
     ) {
-        if (!code || code.length > PROMOTIONS.maxCodeCharacters)
+        if (!code || code.length > PROMOTIONS.maxCodeCharacters) {
             throw new ValidationError(errorMessages.invalidPromocode);
+        }
         for (const value of [
             uses_left,
             text_reward,
             img_reward,
             discount_amount,
             max_uses_per_user,
-        ])
+        ]) {
             nonNegativeInteger(value, fieldNames.promocode);
-        if (discount_amount > PERCENT || max_uses_per_user < 1)
+        }
+        if (discount_amount > PERCENT || max_uses_per_user < 1) {
             throw new ValidationError(errorMessages.invalidPromoLimits);
+        }
         const query = `
         INSERT INTO promocodes (code, uses_left, text_reward, img_reward, discount_amount, max_uses_per_user, max_uses_total, is_new_users_only)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -58,21 +61,27 @@ export function createPromotionRepository(pool: Pool): PromotionRepository {
             is_new_users_only,
         ]);
     }
+
     async function updatePromoField(id: number, field: string, value: string | number | boolean) {
         const amount = nonNegativeInteger(value, fieldNames.promocode);
-        if (!['text', 'img', 'disc', 'uses'].includes(field))
+        if (!['text', 'img', 'disc', 'uses'].includes(field)) {
             throw new ValidationError(errorMessages.unknownPromoField);
-        if (field === 'disc' && amount > PERCENT)
+        }
+        if (field === 'disc' && amount > PERCENT) {
             throw new ValidationError(errorMessages.discountTooLarge);
-        if (field === 'text')
+        }
+        if (field === 'text') {
             await pool.query('UPDATE promocodes SET text_reward = $1 WHERE id = $2', [value, id]);
-        if (field === 'img')
+        }
+        if (field === 'img') {
             await pool.query('UPDATE promocodes SET img_reward = $1 WHERE id = $2', [value, id]);
-        if (field === 'disc')
+        }
+        if (field === 'disc') {
             await pool.query('UPDATE promocodes SET discount_amount = $1 WHERE id = $2', [
                 value,
                 id,
             ]);
+        }
         if (field === 'uses') {
             await pool.query(
                 'UPDATE promocodes SET uses_left = GREATEST(0, uses_left + ($1 - max_uses_total)), max_uses_total = $1 WHERE id = $2',
@@ -80,6 +89,7 @@ export function createPromotionRepository(pool: Pool): PromotionRepository {
             );
         }
     }
+
     async function activatePromocode(userId: UserId, code: string): Promise<PromoResult> {
         const client = await pool.connect();
         try {
@@ -153,6 +163,7 @@ export function createPromotionRepository(pool: Pool): PromotionRepository {
             client.release();
         }
     }
+
     async function getAllPromocodes() {
         const res = await pool.query<Promo>(
             'SELECT * FROM promocodes ORDER BY created_at DESC LIMIT $1',
@@ -160,25 +171,30 @@ export function createPromotionRepository(pool: Pool): PromotionRepository {
         );
         return res.rows;
     }
+
     async function getPromocodeById(id: number) {
         const res = await pool.query<Promo>('SELECT * FROM promocodes WHERE id = $1', [id]);
         return res.rows[0];
     }
+
     async function togglePromoStatus(id: number) {
         await pool.query('UPDATE promocodes SET is_active = NOT is_active WHERE id = $1', [id]);
     }
+
     async function togglePromoNewUsersOnly(id: number) {
         await pool.query(
             'UPDATE promocodes SET is_new_users_only = NOT is_new_users_only WHERE id = $1',
             [id],
         );
     }
+
     async function deletePromocode(id: number) {
         await transaction(pool, async (client) => {
             await client.query('DELETE FROM user_promocodes WHERE promo_id = $1', [id]);
             await client.query('DELETE FROM promocodes WHERE id = $1', [id]);
         });
     }
+
     return {
         createPromocode,
         updatePromoField,

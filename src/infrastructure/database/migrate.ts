@@ -25,7 +25,9 @@ export async function migrate(pool: Pool): Promise<void> {
                 'SELECT name FROM schema_migrations WHERE name = $1',
                 [migration.name],
             );
-            if (applied.rowCount) continue;
+            if (applied.rowCount) {
+                continue;
+            }
             await client.query(migration.sql);
             await client.query('INSERT INTO schema_migrations (name) VALUES ($1)', [
                 migration.name,

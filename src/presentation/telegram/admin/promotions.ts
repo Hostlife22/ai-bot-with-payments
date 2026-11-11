@@ -22,8 +22,11 @@ export function registerPromotions(runtime: Runtime) {
         togglePromoNewUsersOnly,
         deletePromocode,
     } = repository;
+
     bot.action('admin_promo_list', async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         const promos = await getAllPromocodes();
         let msg = adminPromoMessages.listHeading;
         const kb = [];
@@ -37,9 +40,12 @@ export function registerPromotions(runtime: Runtime) {
                 const usesDone = p.max_uses_total - p.uses_left;
                 msg += adminPromoMessages.listCode(statusIcon, p.code);
                 msg += adminPromoMessages.usageSummary(usesDone, p.max_uses_total);
-                if (p.discount_amount > 0)
+                if (p.discount_amount > 0) {
                     msg += adminPromoMessages.discountSummary(p.discount_amount);
-                if (p.text_reward > 0) msg += adminPromoMessages.textRewardSummary(p.text_reward);
+                }
+                if (p.text_reward > 0) {
+                    msg += adminPromoMessages.textRewardSummary(p.text_reward);
+                }
                 msg += `\n`;
                 kb.push([
                     Markup.button.callback(
@@ -55,14 +61,19 @@ export function registerPromotions(runtime: Runtime) {
             .editMessageText(msg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: kb } })
             .catch(() => {});
     });
+
     bot.action(/p_manage_(\d+)/, async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         const promoId = parseInt(
             required(ctx.match[1], errorMessages.invalidCallback),
             DECIMAL_RADIX,
         );
         const p = await getPromocodeById(promoId);
-        if (!p) return ctx.answerCbQuery(adminPromoMessages.notFound);
+        if (!p) {
+            return ctx.answerCbQuery(adminPromoMessages.notFound);
+        }
         const usesDone = p.max_uses_total - p.uses_left;
         const statusText = p.is_active ? commonMessages.active : adminPromoMessages.inactive;
         const statusIcon = p.is_active ? commonMessages.successIcon : commonMessages.failureIcon;
@@ -95,6 +106,7 @@ export function registerPromotions(runtime: Runtime) {
             .editMessageText(msg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: kb } })
             .catch(() => {});
     });
+
     bot.action(/p_tgl_stat_(\d+)/, async (ctx) => {
         await togglePromoStatus(
             parseInt(required(ctx.match[1], errorMessages.invalidCallback), DECIMAL_RADIX),
@@ -107,6 +119,7 @@ export function registerPromotions(runtime: Runtime) {
             },
         });
     });
+
     bot.action(/p_tgl_new_(\d+)/, async (ctx) => {
         await togglePromoNewUsersOnly(
             parseInt(required(ctx.match[1], errorMessages.invalidCallback), DECIMAL_RADIX),
@@ -119,6 +132,7 @@ export function registerPromotions(runtime: Runtime) {
             },
         });
     });
+
     bot.action(/p_del_(\d+)/, async (ctx) => {
         await deletePromocode(
             parseInt(required(ctx.match[1], errorMessages.invalidCallback), DECIMAL_RADIX),
@@ -129,6 +143,7 @@ export function registerPromotions(runtime: Runtime) {
             callback_query: { ...ctx.callbackQuery, data: 'admin_promo_list' },
         });
     });
+
     bot.action(/p_edit_bonuses_(\d+)/, async (ctx) => {
         const id = required(ctx.match[1], errorMessages.invalidCallback);
         const kb = [
@@ -146,6 +161,7 @@ export function registerPromotions(runtime: Runtime) {
             reply_markup: { inline_keyboard: kb },
         });
     });
+
     bot.action(/p_ed_(text|img|disc|uses)_(\d+)/, async (ctx) => {
         const field = required(ctx.match[1], errorMessages.invalidCallback);
         const id = required(ctx.match[2], errorMessages.invalidCallback);
@@ -159,6 +175,7 @@ export function registerPromotions(runtime: Runtime) {
             },
         });
     });
+
     bot.action('p_create', async (ctx) => {
         userState[actorId(ctx)] = 'WAITING_NEW_PROMO_CODE';
         await ctx.answerCbQuery();
@@ -171,9 +188,10 @@ export function registerPromotions(runtime: Runtime) {
             },
         });
     });
+
     async function renderPromoDraft(ctx: Context) {
         const draft = adminPromoDraft[actorId(ctx)];
-        if (!draft)
+        if (!draft) {
             return ctx.reply(adminPromoMessages.invalidDraft, {
                 reply_markup: {
                     inline_keyboard: [
@@ -181,6 +199,7 @@ export function registerPromotions(runtime: Runtime) {
                     ],
                 },
             });
+        }
         const msg =
             adminPromoMessages.draftHeading +
             adminPromoMessages.draftCode(draft.code) +
@@ -233,6 +252,7 @@ export function registerPromotions(runtime: Runtime) {
         }
         return ctx.reply(msg, { parse_mode: 'Markdown', reply_markup: { inline_keyboard: kb } });
     }
+
     bot.action(/pdraft_(text|img|disc|uses)/, async (ctx) => {
         const field = required(ctx.match[1], errorMessages.invalidCallback);
         userState[actorId(ctx)] = `WAITING_PDRAFT_${field.toUpperCase()}`;
@@ -245,19 +265,26 @@ export function registerPromotions(runtime: Runtime) {
             },
         });
     });
+
     bot.action('pdraft_newonly', async (ctx) => {
         const draft = adminPromoDraft[actorId(ctx)];
-        if (draft) draft.newOnly = !draft.newOnly;
+        if (draft) {
+            draft.newOnly = !draft.newOnly;
+        }
         return renderPromoDraft(ctx);
     });
+
     bot.action('pdraft_cancel_input', async (ctx) => {
         delete userState[actorId(ctx)];
         await ctx.deleteMessage().catch(() => {});
         return renderPromoDraft(ctx);
     });
+
     bot.action('pdraft_save', async (ctx) => {
         const draft = adminPromoDraft[actorId(ctx)];
-        if (!draft) return ctx.answerCbQuery(commonMessages.error);
+        if (!draft) {
+            return ctx.answerCbQuery(commonMessages.error);
+        }
         await createPromocode(
             draft.code,
             draft.uses,
@@ -274,5 +301,6 @@ export function registerPromotions(runtime: Runtime) {
             callback_query: { ...ctx.callbackQuery, data: 'admin_promo_list' },
         });
     });
+
     return { renderPromoDraft };
 }

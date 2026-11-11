@@ -11,6 +11,7 @@ const repository =
 const ref = process.env.DOCS_REF ?? 'master';
 const targets = new Map();
 const pages = [];
+
 for (const [language, prefix] of [
     ['eng', ''],
     ['ru', 'ru/'],
@@ -25,6 +26,7 @@ for (const [language, prefix] of [
         pages.push({ source, target });
     }
 }
+
 for (const [name, target] of [
     ['README.md', 'index.md'],
     ['README.ru.md', 'ru/index.md'],
@@ -35,29 +37,36 @@ for (const [name, target] of [
     targets.set(source, target);
     pages.push({ source, target });
 }
+
 for (const [name, target] of [
     ['CONTRIBUTING.md', 'contributing.md'],
     ['SECURITY.md', 'security.md'],
     ['ACCESSIBILITY.md', 'accessibility.md'],
     ['CHANGELOG.md', 'changelog.md'],
     ['LICENSE', 'license.md'],
-])
+]) {
     targets.set(join(root, name), target);
+}
+
 await rm(output, { recursive: true, force: true });
 await mkdir(join(output, '.vitepress'), { recursive: true });
 await writeFile(
     join(output, '.vitepress/config.mts'),
     "export { default } from '../../.vitepress/config.mts';\n",
 );
+
 for (const { source, target } of pages) {
     const text = await readFile(source, 'utf8');
     const transformed = text.replace(/\]\(([^\s)]+)\)/g, (match, href) => {
-        if (/^[a-z][a-z0-9+.-]*:|^#/i.test(href)) return match;
+        if (/^[a-z][a-z0-9+.-]*:|^#/i.test(href)) {
+            return match;
+        }
         const [pathname, fragment] = href.split('#');
         const absolute = resolve(dirname(source), decodeURIComponent(pathname));
         const mapped = targets.get(absolute);
-        if (mapped)
+        if (mapped) {
             return `](${relative(dirname(target), mapped).split('\\').join('/')}${fragment ? `#${fragment}` : ''})`;
+        }
         const sourcePath = relative(root, absolute).split('\\').join('/');
         return `](https://github.com/${repository}/blob/${encodeURIComponent(ref)}/${sourcePath}${fragment ? `#${fragment}` : ''})`;
     });
@@ -65,6 +74,7 @@ for (const { source, target } of pages) {
     await mkdir(dirname(destination), { recursive: true });
     await writeFile(destination, transformed);
 }
+
 await writeFile(
     join(output, 'license.md'),
     `# MIT License\n\n\`\`\`text\n${await readFile(join(root, 'LICENSE'), 'utf8')}\`\`\`\n`,

@@ -5,8 +5,11 @@ import { createSeoConfig } from './seo.mjs';
 
 const repository = process.env.GITHUB_REPOSITORY ?? 'Hostlife22/ai-bot-with-payments';
 const base = process.env.DOCS_BASE ?? '/';
-if (!base.startsWith('/') || !base.endsWith('/'))
+
+if (!base.startsWith('/') || !base.endsWith('/')) {
     throw new Error('DOCS_BASE must begin and end with /.');
+}
+
 const filenames = [
     'configuration',
     'architecture',
@@ -21,6 +24,7 @@ const filenames = [
     'third-party-notices',
     'ci-cd',
 ];
+
 function sidebar(prefix: string, title: string, labels: string[]): DefaultTheme.SidebarItem[] {
     return [
         {
@@ -32,6 +36,7 @@ function sidebar(prefix: string, title: string, labels: string[]): DefaultTheme.
         },
     ];
 }
+
 export default withMermaid(
     defineConfig({
         ...createSeoConfig(repository, filenames),

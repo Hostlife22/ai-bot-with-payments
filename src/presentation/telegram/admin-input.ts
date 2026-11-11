@@ -16,6 +16,7 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
     const { userState, adminPromoDraft, adminBroadcastMsg, adminTargetUser } = sessions;
     const { setSetting, adminSetTextBalance, adminSetImageBalance, updatePromoField } = repository;
     const { renderAdminPanel, renderPromoDraft, renderUserManagePanel } = admin;
+
     bot.on('text', async (ctx, next) => {
         const userId = ctx.from.id;
         const state = userState[userId];
@@ -24,13 +25,16 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
             !state ||
             state === 'WAITING_FOR_CUSTOM_PROMPT' ||
             state === 'WAITING_FOR_PROMOCODE'
-        )
+        ) {
             return next();
+        }
         const text = ctx.message.text;
         if (userId === ADMIN_ID) {
             if (userState[userId] === 'WAITING_MU_ID') {
                 const targetId = nonNegativeInteger(text.trim(), fieldNames.value);
-                if (isNaN(targetId)) return ctx.reply(adminInputMessages.invalidUserId);
+                if (isNaN(targetId)) {
+                    return ctx.reply(adminInputMessages.invalidUserId);
+                }
                 adminTargetUser[userId] = targetId;
                 delete userState[userId];
                 await ctx.deleteMessage().catch(() => {});
@@ -40,8 +44,9 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
             if (targetId) {
                 if (userState[userId] === 'WAITING_MU_TEXT') {
                     const count = nonNegativeInteger(text.trim(), fieldNames.value);
-                    if (isNaN(count) || count < 0)
+                    if (isNaN(count) || count < 0) {
                         return ctx.reply(adminInputMessages.positiveNumberRequired);
+                    }
                     await adminSetTextBalance(targetId, count);
                     delete userState[userId];
                     await ctx.reply(adminInputMessages.textBalanceUpdated);
@@ -49,8 +54,9 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
                 }
                 if (userState[userId] === 'WAITING_MU_IMG') {
                     const count = nonNegativeInteger(text.trim(), fieldNames.value);
-                    if (isNaN(count) || count < 0)
+                    if (isNaN(count) || count < 0) {
                         return ctx.reply(adminInputMessages.positiveNumberRequired);
+                    }
                     await adminSetImageBalance(targetId, count);
                     delete userState[userId];
                     await ctx.reply(adminInputMessages.imageBalanceUpdated);
@@ -113,7 +119,9 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
                 ].includes(settingKey)
             ) {
                 const num = nonNegativeInteger(text.trim(), fieldNames.value);
-                if (isNaN(num) || num < 1) return ctx.reply(adminInputMessages.numberRequired);
+                if (isNaN(num) || num < 1) {
+                    return ctx.reply(adminInputMessages.numberRequired);
+                }
                 await setSetting(settingKey, num);
             } else {
                 await setSetting(settingKey, text.trim());
@@ -143,13 +151,22 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
         ) {
             const field = userState[userId].replace('WAITING_PDRAFT_', '').toLowerCase();
             const num = nonNegativeInteger(text.trim(), fieldNames.value);
-            if (isNaN(num) || num < 0) return ctx.reply(adminInputMessages.positiveNumberRequired);
+            if (isNaN(num) || num < 0) {
+                return ctx.reply(adminInputMessages.positiveNumberRequired);
+            }
             const draft = adminPromoDraft[userId];
-            if (!draft) return ctx.reply(adminInputMessages.missingDraft);
-            if (field === 'uses') draft.uses = num;
-            else if (field === 'text') draft.textReward = num;
-            else if (field === 'img') draft.imgReward = num;
-            else if (field === 'disc') draft.discount = num;
+            if (!draft) {
+                return ctx.reply(adminInputMessages.missingDraft);
+            }
+            if (field === 'uses') {
+                draft.uses = num;
+            } else if (field === 'text') {
+                draft.textReward = num;
+            } else if (field === 'img') {
+                draft.imgReward = num;
+            } else if (field === 'disc') {
+                draft.discount = num;
+            }
             delete userState[userId];
             await ctx.deleteMessage().catch(() => {});
             const lastMsgId = ctx.message.message_id - 1;
@@ -165,7 +182,9 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
             const field = required(parts[2]).toLowerCase();
             const id = Number(parts[3]);
             const num = nonNegativeInteger(text.trim(), fieldNames.value);
-            if (isNaN(num) || num < 0) return ctx.reply(adminInputMessages.positiveNumberRequired);
+            if (isNaN(num) || num < 0) {
+                return ctx.reply(adminInputMessages.positiveNumberRequired);
+            }
             await updatePromoField(id, field, num);
             delete userState[userId];
             return ctx.reply(adminInputMessages.promoUpdated, {

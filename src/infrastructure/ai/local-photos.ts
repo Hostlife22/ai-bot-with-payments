@@ -11,12 +11,15 @@ export function createLocalPhotoSource(directory: string): PhotoSource {
                 const files = (await readdir(directory, { withFileTypes: true })).filter(
                     (file) => file.isFile() && /\.(?:jpe?g|png|webp)$/i.test(file.name),
                 );
-                if (!files.length) return null;
+                if (!files.length) {
+                    return null;
+                }
                 const file = files[randomInt(files.length)];
                 return file ? { source: join(directory, file.name) } : null;
             } catch (error) {
-                if (error instanceof Error && 'code' in error && error.code === 'ENOENT')
+                if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
                     return null;
+                }
                 throw error;
             }
         },

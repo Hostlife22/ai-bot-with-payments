@@ -8,8 +8,10 @@ export function validatePayment(intent: PurchaseIntent, proof: PaymentProof): vo
         proof.currency !== intent.currency ||
         proof.provider !== intent.provider ||
         !proof.transactionId
-    )
+    ) {
         throw new Error(errorMessages.paymentMismatch);
-    if (intent.provider_tx_id && intent.provider_tx_id !== proof.transactionId)
+    }
+    if (intent.provider_tx_id && intent.provider_tx_id !== proof.transactionId) {
         throw new Error(errorMessages.transactionMismatch);
+    }
 }

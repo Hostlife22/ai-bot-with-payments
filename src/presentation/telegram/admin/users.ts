@@ -25,8 +25,11 @@ export function registerUsers(runtime: Runtime) {
         grantPackage,
         getPaymentHistory,
     } = repository;
+
     bot.action(/users_page_(\d+)/, async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         const page = parseInt(required(ctx.match[1], errorMessages.invalidCallback), DECIMAL_RADIX);
         const limit = DATABASE.usersPageSize;
         const offset = (page - 1) * limit;
@@ -34,6 +37,7 @@ export function registerUsers(runtime: Runtime) {
         const totalPages = Math.ceil(totalUsers / limit) || 1;
         const users = await getUsersPage(limit, offset);
         const kb = [];
+
         users.forEach((u) => {
             const status = u.is_blocked ? commonMessages.blockedIcon : commonMessages.successIcon;
             const name = u.first_name
@@ -46,12 +50,15 @@ export function registerUsers(runtime: Runtime) {
                 ),
             ]);
         });
+
         const nav = [];
-        if (page > 1)
+        if (page > 1) {
             nav.push(Markup.button.callback(commonMessages.previous, `users_page_${page - 1}`));
+        }
         nav.push(Markup.button.callback(adminUserMessages.pagination(page, totalPages), 'ignore'));
-        if (page < totalPages)
+        if (page < totalPages) {
             nav.push(Markup.button.callback(commonMessages.next, `users_page_${page + 1}`));
+        }
         kb.push(nav);
         kb.push([Markup.button.callback(adminUserMessages.searchById, 'mu_start')]);
         kb.push([Markup.button.callback(adminUserMessages.backToAdmin, 'admin_back')]);
@@ -62,8 +69,11 @@ export function registerUsers(runtime: Runtime) {
             })
             .catch(() => {});
     });
+
     bot.action(/mu_open_(\d+)/, async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         const targetId = parseInt(
             required(ctx.match[1], errorMessages.invalidCallback),
             DECIMAL_RADIX,
@@ -71,10 +81,14 @@ export function registerUsers(runtime: Runtime) {
         adminTargetUser[actorId(ctx)] = targetId;
         return renderUserManagePanel(ctx, targetId);
     });
+
     bot.action('ignore', async (ctx) => ctx.answerCbQuery());
+
     async function renderUserManagePanel(ctx: Context, targetId: UserId) {
         const tUser = await getUser(targetId);
-        if (!tUser) return ctx.reply(adminUserMessages.notFound);
+        if (!tUser) {
+            return ctx.reply(adminUserMessages.notFound);
+        }
         const nameStr = tUser.first_name ? tUser.first_name : commonMessages.unknown;
         const userStr = tUser.username
             ? adminUserMessages.username(tUser.username)
@@ -117,8 +131,11 @@ export function registerUsers(runtime: Runtime) {
             return ctx.reply(msg, { parse_mode: 'HTML', reply_markup: kb.reply_markup });
         }
     }
+
     bot.action('mu_start', async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         userState[actorId(ctx)] = 'WAITING_MU_ID';
         await ctx.answerCbQuery();
         return ctx.editMessageText(adminUserMessages.enterId, {
@@ -128,6 +145,7 @@ export function registerUsers(runtime: Runtime) {
             },
         });
     });
+
     bot.action('mu_edit_text', async (ctx) => {
         userState[actorId(ctx)] = 'WAITING_MU_TEXT';
         await ctx.answerCbQuery();
@@ -137,6 +155,7 @@ export function registerUsers(runtime: Runtime) {
             },
         });
     });
+
     bot.action('mu_edit_img', async (ctx) => {
         userState[actorId(ctx)] = 'WAITING_MU_IMG';
         await ctx.answerCbQuery();
@@ -146,6 +165,7 @@ export function registerUsers(runtime: Runtime) {
             },
         });
     });
+
     bot.action('mu_set_package', async (ctx) => {
         const kb = Markup.inlineKeyboard([
             [
@@ -178,9 +198,11 @@ export function registerUsers(runtime: Runtime) {
             reply_markup: kb.reply_markup,
         });
     });
+
     bot.action('mu_back_to_user', async (ctx) => {
         return renderUserManagePanel(ctx, required(adminTargetUser[actorId(ctx)]));
     });
+
     bot.action(/mu_give_pkg_(\d+)_(\d+)/, async (ctx) => {
         const targetId = required(adminTargetUser[actorId(ctx)], errorMessages.selectUserFirst);
         const textCount = parseInt(
@@ -195,12 +217,14 @@ export function registerUsers(runtime: Runtime) {
         await ctx.answerCbQuery(adminUserMessages.packageGranted);
         return renderUserManagePanel(ctx, targetId);
     });
+
     bot.action('mu_give_vip', async (ctx) => {
         const targetId = required(adminTargetUser[actorId(ctx)], errorMessages.selectUserFirst);
         await grantPackage(targetId, ADMIN_VIP.texts, ADMIN_VIP.images, 0, CURRENCIES.adminVip);
         await ctx.answerCbQuery(adminUserMessages.vipGranted);
         return renderUserManagePanel(ctx, targetId);
     });
+
     bot.action('mu_payments', async (ctx) => {
         const targetId = required(adminTargetUser[actorId(ctx)], errorMessages.selectUserFirst);
         const payments = await getPaymentHistory(targetId);
@@ -222,6 +246,7 @@ export function registerUsers(runtime: Runtime) {
             },
         });
     });
+
     bot.action('mu_msg', async (ctx) => {
         userState[actorId(ctx)] = 'WAITING_MU_MSG';
         await ctx.answerCbQuery();
@@ -231,15 +256,19 @@ export function registerUsers(runtime: Runtime) {
             },
         });
     });
+
     bot.action('mu_block', async (ctx) => {
         const targetId = required(adminTargetUser[actorId(ctx)], errorMessages.selectUserFirst);
         const tUser = await getUser(targetId);
-        if (!tUser) return ctx.answerCbQuery(commonMessages.error);
+        if (!tUser) {
+            return ctx.answerCbQuery(commonMessages.error);
+        }
         await setBlockStatus(targetId, !tUser.is_blocked);
         await ctx.answerCbQuery(
             !tUser.is_blocked ? adminUserMessages.blocked : adminUserMessages.unblocked,
         );
         return renderUserManagePanel(ctx, targetId);
     });
+
     return { renderUserManagePanel };
 }

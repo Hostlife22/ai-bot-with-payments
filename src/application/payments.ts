@@ -32,11 +32,15 @@ export function createPaymentService(
             amount: discountedPrice(provider === 'stars' ? pack.stars : pack.rub, discount),
         });
     }
+
     async function checkPlatega(intent: PurchaseIntent): Promise<PaymentCheckStatus> {
-        if (intent.provider !== 'platega' || !intent.provider_tx_id)
+        if (intent.provider !== 'platega' || !intent.provider_tx_id) {
             throw new Error(errorMessages.notPlategaPurchase);
+        }
         const status = await platega.checkPlategaInvoice(intent.provider_tx_id);
-        if (!status) return 'UNAVAILABLE';
+        if (!status) {
+            return 'UNAVAILABLE';
+        }
         if (status.status !== 'CONFIRMED') {
             if (status.status === 'CANCELED' || status.status === 'CHARGEBACKED') {
                 await store.cancel(intent.id);
@@ -44,8 +48,9 @@ export function createPaymentService(
             }
             return 'PENDING';
         }
-        if (status.payload !== `purchase:${intent.id}`)
+        if (status.payload !== `purchase:${intent.id}`) {
             throw new Error(errorMessages.providerPayloadMismatch);
+        }
         const credited = await store.fulfill(intent.id, {
             userId: intent.user_id,
             provider: 'platega',
@@ -55,5 +60,6 @@ export function createPaymentService(
         });
         return credited ? 'CONFIRMED' : 'ALREADY_PAID';
     }
+
     return { create, checkPlatega, store };
 }

@@ -64,3 +64,7 @@ Contributions use the project's [MIT license](LICENSE). Added third-party code m
 ## Constants and messages
 
 Use `@constants/*` for policy and runtime values, and `@messages/*` for text. Shared buttons live in `messages/common.ts`; errors and logs have separate catalogs. Keep dynamic text in typed formatter functions, and derive displayed limits and rewards from the same constants used by services. ESLint rejects magic numbers and inline error/Telegram reply strings in implementation modules; zero, one, array indexes and type literals retain their structural meaning.
+
+## Readability
+
+Separate standalone functions, methods and callback handlers with one blank line. Keep statements inside function bodies together without blank lines; nested function definitions remain separated. Use braces for `if`/`else` and loops. `npm run format` applies ESLint fixes before Prettier; `npm run lint:fix` runs fixes alone. Development scripts and documentation configuration follow the same rules.

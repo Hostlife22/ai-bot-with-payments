@@ -12,12 +12,15 @@ export function createPlategaClient(
     repository: Pick<Repository, 'logPaymentFailure'>,
 ) {
     const { logPaymentFailure } = repository;
+
     async function createPlategaInvoice(
         amount: number,
         paymentMethod: number,
         payloadStr: string,
     ): Promise<PlategaInvoice | null> {
-        if (!config.plategaMerchantId || !config.plategaSecret) return null;
+        if (!config.plategaMerchantId || !config.plategaSecret) {
+            return null;
+        }
         try {
             const requestBody = {
                 paymentMethod: paymentMethod,
@@ -51,8 +54,11 @@ export function createPlategaClient(
             return null;
         }
     }
+
     async function checkPlategaInvoice(transactionId: string): Promise<PlategaStatus | null> {
-        if (!config.plategaMerchantId || !config.plategaSecret) return null;
+        if (!config.plategaMerchantId || !config.plategaSecret) {
+            return null;
+        }
         try {
             const response = await fetch(
                 `${PLATEGA.baseUrl}/transaction/${encodeURIComponent(transactionId)}`,
@@ -76,5 +82,6 @@ export function createPlategaClient(
             return null;
         }
     }
+
     return { createPlategaInvoice, checkPlategaInvoice };
 }

@@ -20,6 +20,7 @@ export function createBroadcastQueue(redisUrl: string) {
         },
     });
     broadcastQueue.on('error', (error) => console.error(logMessages.broadcastQueueFailed, error));
+
     function startBroadcastWorker(bot: Telegraf) {
         const worker = new Worker<BroadcastJob>(
             QUEUES.broadcastName,
@@ -103,5 +104,6 @@ export function createBroadcastQueue(redisUrl: string) {
         worker.on('error', (error) => console.error(logMessages.broadcastWorkerFailed, error));
         return worker;
     }
+
     return { broadcastQueue, startBroadcastWorker };
 }

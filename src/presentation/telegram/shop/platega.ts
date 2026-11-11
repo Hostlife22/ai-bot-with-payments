@@ -8,6 +8,7 @@ import { required } from '@domain/validation';
 export function registerPlategaShop(runtime: PlategaShopDependencies) {
     const { bot, repository, platega, payments } = runtime;
     const { createPlategaInvoice } = platega;
+
     bot.action(
         new RegExp(`^pay_platega_(${PLATEGA.methods.sbp}|${PLATEGA.methods.crypto})_([a-z0-9]+)$`),
         async (ctx) => {
@@ -40,6 +41,7 @@ export function registerPlategaShop(runtime: PlategaShopDependencies) {
             );
         },
     );
+
     bot.action(/^purchase_([a-f0-9-]{36})$/, async (ctx) => {
         await ctx.answerCbQuery(paymentMessages.checkingStatus);
         const intent = await payments.store.find(required(ctx.match[1]));
@@ -60,6 +62,7 @@ export function registerPlategaShop(runtime: PlategaShopDependencies) {
                       : paymentMessages.pending,
         );
     });
+
     bot.action(/^chk_pl_/, (ctx) =>
         ctx.answerCbQuery(paymentMessages.legacyInvoice, {
             show_alert: true,

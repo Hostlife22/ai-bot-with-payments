@@ -14,6 +14,7 @@ export const roleModes = [
     'truth_dare',
     'custom',
 ] as const;
+
 export function isRoleMode(value: string): value is RoleMode {
     return roleModes.some((mode) => mode === value);
 }

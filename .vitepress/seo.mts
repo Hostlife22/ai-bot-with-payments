@@ -11,14 +11,18 @@ export function createSeoConfig(
     const siteUrl = new URL(
         process.env.DOCS_SITE_URL ?? `https://${owner?.toLowerCase()}.github.io/${name}/`,
     );
-    if (!siteUrl.pathname.endsWith('/')) throw new Error('DOCS_SITE_URL must end with /.');
+    if (!siteUrl.pathname.endsWith('/')) {
+        throw new Error('DOCS_SITE_URL must end with /.');
+    }
     const locales = [
         { prefix: '', language: 'en', openGraph: 'en_US' },
         { prefix: 'ru/', language: 'ru', openGraph: 'ru_RU' },
         { prefix: 'zh/', language: 'zh-CN', openGraph: 'zh_CN' },
     ];
+
     const pageUrl = (path: string): string =>
         new URL(path.replace(/\.md$/, '').replace(/(^|\/)index$/, '$1'), siteUrl).href;
+
     return {
         head: [
             ['meta', { name: 'author', content: 'Hostlife22' }],
@@ -28,9 +32,12 @@ export function createSeoConfig(
             hostname: siteUrl.href,
             transformItems: (items) => items.filter((item) => !item.url.includes('404')),
         },
+
         transformHead: ({ pageData, title, description }): HeadConfig[] => {
             const path = pageData.relativePath;
-            if (path === '404.md') return [['meta', { name: 'robots', content: 'noindex,follow' }]];
+            if (path === '404.md') {
+                return [['meta', { name: 'robots', content: 'noindex,follow' }]];
+            }
             const canonical = pageUrl(path);
             const locale =
                 locales.find((item) => item.prefix && path.startsWith(item.prefix)) ?? locales[0];
@@ -66,6 +73,7 @@ export function createSeoConfig(
             }
             return tags;
         },
+
         async buildEnd(config) {
             await writeFile(
                 join(config.outDir, 'robots.txt'),

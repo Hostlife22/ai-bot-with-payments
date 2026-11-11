@@ -15,8 +15,9 @@ export function parseAiJob(value: unknown): AiJob {
         typeof data.chatId !== 'number' ||
         !Number.isSafeInteger(data.chatId) ||
         typeof data.shouldDecrement !== 'boolean'
-    )
+    ) {
         throw new Error(errorMessages.invalidAiJob);
+    }
     const job: AiJob = {
         userId,
         text: data.text,
@@ -28,8 +29,9 @@ export function parseAiJob(value: unknown): AiJob {
             typeof data.tempMsgId !== 'number' ||
             !Number.isSafeInteger(data.tempMsgId) ||
             data.tempMsgId <= 0
-        )
+        ) {
             throw new Error(errorMessages.invalidTemporaryMessageId);
+        }
         job.tempMsgId = data.tempMsgId;
     }
     return job;

@@ -4,18 +4,24 @@ import type { AppConfig } from '@contracts/config';
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     const required = (key: string): string => {
         const value = env[key]?.trim();
-        if (!value) throw new Error(errorMessages.missingEnvironment(key));
+        if (!value) {
+            throw new Error(errorMessages.missingEnvironment(key));
+        }
         return value;
     };
+
     const adminId = Number(required('ADMIN_ID'));
-    if (!Number.isSafeInteger(adminId) || adminId <= 0)
+    if (!Number.isSafeInteger(adminId) || adminId <= 0) {
         throw new Error(errorMessages.invalidAdminId);
+    }
     const databaseUrl = required('DATABASE_URL');
     const redisUrl = required('REDIS_URL');
-    if (!['postgres:', 'postgresql:'].includes(new URL(databaseUrl).protocol))
+    if (!['postgres:', 'postgresql:'].includes(new URL(databaseUrl).protocol)) {
         throw new Error(errorMessages.invalidDatabaseProtocol);
-    if (!['redis:', 'rediss:'].includes(new URL(redisUrl).protocol))
+    }
+    if (!['redis:', 'rediss:'].includes(new URL(redisUrl).protocol)) {
         throw new Error(errorMessages.invalidRedisUrlProtocol);
+    }
     return {
         botToken: required('BOT_TOKEN'),
         adminId,

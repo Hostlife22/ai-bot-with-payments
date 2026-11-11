@@ -18,12 +18,14 @@ export function createBalanceRepository(pool: Pool): BalanceRepository {
         );
         return (result.rowCount ?? 0) > 0;
     }
+
     async function refundBalance(userId: UserId, resource: 'text' | 'image'): Promise<void> {
         const column = resource === 'text' ? 'text_balance' : 'image_balance';
         await pool.query(`UPDATE users SET ${column} = ${column} + 1 WHERE telegram_id = $1`, [
             userId,
         ]);
     }
+
     async function resetAllFreeRequests(
         textCount: number = USER_REWARDS.initialTexts,
         imageCount: number = USER_REWARDS.initialImages,
@@ -33,12 +35,14 @@ export function createBalanceRepository(pool: Pool): BalanceRepository {
             imageCount,
         ]);
     }
+
     async function addFreeRequests(userId: UserId, count: number) {
         await pool.query(
             'UPDATE users SET text_balance = GREATEST(text_balance, 0) + $1 WHERE telegram_id = $2',
             [count, userId],
         );
     }
+
     async function grantPackage(
         userId: UserId,
         textCount: number,
@@ -60,24 +64,29 @@ export function createBalanceRepository(pool: Pool): BalanceRepository {
             );
         });
     }
+
     async function adminSetTextBalance(userId: UserId, count: number) {
         const safeCount = Number(count);
-        if (!Number.isSafeInteger(safeCount) || safeCount < 0)
+        if (!Number.isSafeInteger(safeCount) || safeCount < 0) {
             throw new Error(errorMessages.invalidNumber);
+        }
         await pool.query('UPDATE users SET text_balance = $1 WHERE telegram_id = $2', [
             safeCount,
             userId,
         ]);
     }
+
     async function adminSetImageBalance(userId: UserId, count: number) {
         const safeCount = Number(count);
-        if (!Number.isSafeInteger(safeCount) || safeCount < 0)
+        if (!Number.isSafeInteger(safeCount) || safeCount < 0) {
             throw new Error(errorMessages.invalidNumber);
+        }
         await pool.query('UPDATE users SET image_balance = $1 WHERE telegram_id = $2', [
             safeCount,
             userId,
         ]);
     }
+
     async function claimDailyBonus(userId: UserId) {
         const res = await pool.query(
             `
@@ -96,6 +105,7 @@ export function createBalanceRepository(pool: Pool): BalanceRepository {
         );
         return (res.rowCount ?? 0) > 0;
     }
+
     return {
         reserveBalance,
         refundBalance,

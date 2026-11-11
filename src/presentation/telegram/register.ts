@@ -15,12 +15,15 @@ export function registerTelegram(runtime: Runtime): void {
     registerShop(runtime);
     registerConversation(runtime, core, admin);
     registerFunnels(runtime);
+
     runtime.bot.catch(async (error, ctx) => {
         if (error instanceof ValidationError) {
             await ctx.reply(error.message).catch(() => undefined);
             return;
         }
         console.error(logMessages.telegramUpdateFailed, { updateId: ctx.update.update_id, error });
-        if (ctx.chat) await ctx.reply(commonMessages.unexpectedError).catch(() => undefined);
+        if (ctx.chat) {
+            await ctx.reply(commonMessages.unexpectedError).catch(() => undefined);
+        }
     });
 }

@@ -30,24 +30,33 @@ export function registerConversation(runtime: Runtime, core: Core, admin: AdminH
     } = repository;
     const { getMainKeyboard, requireTerms } = core;
     const { renderAdminPanel } = admin;
+
     bot.start(async (ctx) => {
         await processReferral(ctx, repository);
         const user = await repository.requireUser(ctx.from.id);
-        if (user.is_blocked && ctx.from.id !== ADMIN_ID)
+        if (user.is_blocked && ctx.from.id !== ADMIN_ID) {
             return ctx.reply(commonMessages.accountBlocked);
+        }
         await repository.updateUserMeta(ctx.from.id, ctx.from.first_name, ctx.from.username);
-        if (!(await requireTerms(ctx, actorId(ctx)))) return;
+        if (!(await requireTerms(ctx, actorId(ctx)))) {
+            return;
+        }
         return ctx.reply(conversationMessages.welcome, getMainKeyboard(actorId(ctx)));
     });
+
     bot.hears(commonMessages.adminPanel, (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         delete userState[actorId(ctx)];
         return renderAdminPanel(ctx, false);
     });
+
     setupHelp(bot, repository);
     setupProfile(bot, userState, themeConfig, repository);
     setupAi(bot, userState, modeNames, repository);
     registerAdminInput(runtime, admin);
+
     bot.on(['photo', 'video', 'document', 'animation'], async (ctx) => {
         const userId = actorId(ctx);
         if (userId === ADMIN_ID && userState[userId] === 'WAITING_FOR_BROADCAST') {
@@ -95,6 +104,7 @@ export function registerConversation(runtime: Runtime, core: Core, admin: AdminH
             });
         }
     });
+
     bot.on('text', async (ctx) => {
         const userId = actorId(ctx);
         const text = ctx.message.text;
@@ -104,18 +114,32 @@ export function registerConversation(runtime: Runtime, core: Core, admin: AdminH
         if (userState[userId] === 'WAITING_FOR_PROMOCODE') {
             const promo = await activatePromocode(userId, text.trim().toUpperCase());
             delete userState[userId];
-            if (promo === 'NOT_FOUND') return ctx.reply(conversationMessages.promoNotFound);
-            if (promo === 'INACTIVE') return ctx.reply(conversationMessages.promoInactive);
-            if (promo === 'LIMIT_EXCEEDED') return ctx.reply(conversationMessages.promoExhausted);
-            if (promo === 'ALREADY_USED') return ctx.reply(conversationMessages.promoAlreadyUsed);
-            if (promo === 'ONLY_NEW') return ctx.reply(conversationMessages.promoNewUsersOnly);
+            if (promo === 'NOT_FOUND') {
+                return ctx.reply(conversationMessages.promoNotFound);
+            }
+            if (promo === 'INACTIVE') {
+                return ctx.reply(conversationMessages.promoInactive);
+            }
+            if (promo === 'LIMIT_EXCEEDED') {
+                return ctx.reply(conversationMessages.promoExhausted);
+            }
+            if (promo === 'ALREADY_USED') {
+                return ctx.reply(conversationMessages.promoAlreadyUsed);
+            }
+            if (promo === 'ONLY_NEW') {
+                return ctx.reply(conversationMessages.promoNewUsersOnly);
+            }
             if (promo) {
                 let msg = conversationMessages.promoActivated;
-                if (promo.text_reward > 0)
+                if (promo.text_reward > 0) {
                     msg += conversationMessages.promoTexts(promo.text_reward);
-                if (promo.img_reward > 0) msg += conversationMessages.promoImages(promo.img_reward);
-                if (promo.discount_amount > 0)
+                }
+                if (promo.img_reward > 0) {
+                    msg += conversationMessages.promoImages(promo.img_reward);
+                }
+                if (promo.discount_amount > 0) {
                     msg += conversationMessages.promoDiscount(promo.discount_amount);
+                }
                 return ctx.reply(msg, { parse_mode: 'Markdown' });
             }
         }

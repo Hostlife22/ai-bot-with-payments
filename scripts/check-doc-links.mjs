@@ -17,6 +17,7 @@ const files = [
         .filter((name) => name.endsWith('.md'))
         .map((name) => join('docs', name)),
 ];
+
 function prose(text) {
     let fence;
     return text
@@ -28,17 +29,22 @@ function prose(text) {
                 return false;
             }
             if (fence) {
-                if (new RegExp(`^\\s{0,3}${fence[0]}{${fence.length},}\\s*$`).test(line))
+                if (new RegExp(`^\\s{0,3}${fence[0]}{${fence.length},}\\s*$`).test(line)) {
                     fence = undefined;
+                }
                 return false;
             }
             return true;
         })
         .join('\n');
 }
+
 const anchors = new Map();
+
 function headings(file) {
-    if (anchors.has(file)) return anchors.get(file);
+    if (anchors.has(file)) {
+        return anchors.get(file);
+    }
     const used = new Map();
     const result = new Set();
     for (const match of prose(readFileSync(file, 'utf8')).matchAll(/^#{1,6}\s+(.+)$/gm)) {
@@ -54,8 +60,10 @@ function headings(file) {
     anchors.set(file, result);
     return result;
 }
+
 const failures = [];
 let count = 0;
+
 for (const name of files) {
     const file = join(root, name);
     if (!existsSync(file)) {
@@ -64,7 +72,9 @@ for (const name of files) {
     }
     for (const match of prose(readFileSync(file, 'utf8')).matchAll(/\]\(([^\s)]+)\)/g)) {
         const target = match[1];
-        if (/^[a-z][a-z0-9+.-]*:/i.test(target)) continue;
+        if (/^[a-z][a-z0-9+.-]*:/i.test(target)) {
+            continue;
+        }
         const [pathname, fragment] = target.split('#');
         const destination = pathname ? resolve(dirname(file), decodeURIComponent(pathname)) : file;
         const location = relative(root, destination);
@@ -78,24 +88,32 @@ for (const name of files) {
             destination.endsWith('.md') &&
             statSync(destination).isFile() &&
             !headings(destination).has(decodeURIComponent(fragment))
-        )
+        ) {
             failures.push(`${name}: missing heading ${target}`);
+        }
     }
 }
+
 const expected = readdirSync(join(root, 'docs/eng'))
     .filter((name) => name.endsWith('.md'))
     .sort();
+
 for (const language of languages) {
     const actual = readdirSync(join(root, 'docs', language))
         .filter((name) => name.endsWith('.md'))
         .sort();
-    if (JSON.stringify(expected) !== JSON.stringify(actual))
+    if (JSON.stringify(expected) !== JSON.stringify(actual)) {
         failures.push(`docs/${language}: document set differs from docs/eng`);
+    }
 }
+
 if (failures.length) {
-    for (const failure of failures) console.error(failure);
+    for (const failure of failures) {
+        console.error(failure);
+    }
     process.exitCode = 1;
-} else
+} else {
     console.log(
         `Documentation links passed: ${count} local links; ${expected.length} documents per language.`,
     );
+}

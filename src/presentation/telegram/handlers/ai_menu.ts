@@ -19,16 +19,19 @@ export function setupAi(
 ) {
     const { setUserPrompt, clearHistory } = repository;
     bot.hears(commonMessages.aiSettings, (ctx) => showAi(ctx, modeNames));
+
     bot.action('menu_ai', async (ctx) => {
         await ctx.answerCbQuery();
         return showAi(ctx, modeNames);
     });
+
     bot.action(
         /prompt_(default|psych|coder|eng|flirthot|flirt|romance|bold|dom|hardcore|truth_dare)/,
         async (ctx) => {
             const mode = required(ctx.match[1], errorMessages.invalidCallback);
-            if (!isRoleMode(mode) || mode === 'custom')
+            if (!isRoleMode(mode) || mode === 'custom') {
                 return ctx.answerCbQuery(aiMenuMessages.unknownMode);
+            }
             const text = required(promptTemplates[`prompt_${mode}`]);
             const modeName = modeNames[mode] || commonMessages.unknown;
             const userId = actorId(ctx);
@@ -48,6 +51,7 @@ export function setupAi(
                 .catch(() => {});
         },
     );
+
     bot.action('prompt_custom', async (ctx) => {
         const userId = actorId(ctx);
         userState[userId] = 'WAITING_FOR_CUSTOM_PROMPT';
@@ -69,10 +73,12 @@ export function setupAi(
             )
             .catch(() => {});
     });
+
     bot.hears(commonMessages.clearHistory, async (ctx) => {
         await clearHistory(actorId(ctx));
         return ctx.reply(aiMenuMessages.historyCleared);
     });
+
     async function showAi(ctx: Context, modeNames: ModeNames) {
         const user = await repository.requireUser(actorId(ctx));
         const currentMode = user.roleplay_mode || 'flirt';

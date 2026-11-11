@@ -22,24 +22,30 @@ const user: User = {
     daily_api_cost: '0',
     total_api_cost: '0',
 };
+
 function fixture(overrides: Partial<User> = {}, imageAvailable = false) {
     const events: string[] = [];
     const timers = new Timers();
     const repository: Parameters<typeof createAiService>[0] = {
         requireUser: async () => ({ ...user, ...overrides }),
+
         reserveBalance: async () => {
             events.push('reserve');
             return true;
         },
+
         refundBalance: async () => {
             events.push('refund');
         },
+
         addApiCost: async () => {
             events.push('cost');
         },
+
         saveMessage: async () => {
             events.push('save');
         },
+
         getHistory: async () => [],
         setUserPrompt: async () => undefined,
     };
@@ -58,6 +64,7 @@ function fixture(overrides: Partial<User> = {}, imageAvailable = false) {
         events,
     };
 }
+
 void test('missing local photos refund image balance and do not charge text', async () => {
     const { service, timers, events } = fixture();
     try {
@@ -93,7 +100,9 @@ void test('successful text responses persist cost and history', async () => {
 void test('rate limited responses do not debit resources', async () => {
     const { service, timers } = fixture();
     try {
-        for (let index = 0; index < 10; index++) await service.generateResponse(42, 'Привет');
+        for (let index = 0; index < 10; index++) {
+            await service.generateResponse(42, 'Привет');
+        }
         assert.equal((await service.generateResponse(42, 'Привет')).chargeText, false);
     } finally {
         await timers.close();

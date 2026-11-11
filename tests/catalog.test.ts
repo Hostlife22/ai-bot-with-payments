@@ -16,14 +16,16 @@ void test('package parsing rejects malformed, negative and fractional prices', (
         '0_50_10_0',
         '35_50_1.5_0',
         '35_50x_10_0',
-    ])
+    ]) {
         assert.throws(() => parsePackage(value));
+    }
     assert.deepEqual(parsePackage('35_50_50_0'), { stars: 35, rub: 50, text: 50, img: 0 });
 });
 void test('catalog rejects invented packages and migrates legacy settings', async () => {
     let saved = '';
     const catalog = createCatalog({
         getSetting: async () => '100_50_5',
+
         setSetting: async (_key, value) => {
             saved = String(value);
         },
@@ -40,8 +42,9 @@ void test('catalog rejects invented packages and migrates legacy settings', asyn
 void test('discounts are bounded and round to at least one unit', () => {
     assert.equal(discountedPrice(50, 20), 40);
     assert.equal(discountedPrice(35, 100), 1);
-    for (const discount of [-1, 101, NaN, Infinity])
+    for (const discount of [-1, 101, NaN, Infinity]) {
         assert.throws(() => discountedPrice(50, discount));
+    }
 });
 void test('configuration validates all required inputs before starting services', () => {
     const env = {
@@ -84,10 +87,12 @@ void test('all administrative callback families require authorization', () => {
         'admin_back',
         'toggle_free_mode',
         'start_broadcast',
-    ])
+    ]) {
         assert.equal(isAdminAction(data), true, data);
-    for (const data of ['prompt_flirt', 'menu_profile', 'pay_stars_lite', 'cancel_input'])
+    }
+    for (const data of ['prompt_flirt', 'menu_profile', 'pay_stars_lite', 'cancel_input']) {
         assert.equal(isAdminAction(data), false, data);
+    }
 });
 void test('Telegram text splitting preserves content and surrogate pairs', () => {
     const input = 'a'.repeat(4095) + '😀' + 'b'.repeat(4100);

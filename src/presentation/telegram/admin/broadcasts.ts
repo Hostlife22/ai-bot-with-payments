@@ -11,19 +11,26 @@ export function registerBroadcasts(runtime: Runtime) {
     const { userState, adminBroadcastMsg } = sessions;
     const { broadcastQueue } = queues;
     const { getAllUserIds } = repository;
+
     bot.action(/broadcast_btn_(.+)/, async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         const btnType = required(ctx.match[1], errorMessages.invalidCallback);
         const message = adminBroadcastMsg[actorId(ctx)];
-        if (!message) return ctx.answerCbQuery(adminBroadcastMessages.missingBroadcast);
+        if (!message) {
+            return ctx.answerCbQuery(adminBroadcastMessages.missingBroadcast);
+        }
         message.btn = btnType;
         userState[actorId(ctx)] = 'CONFIRM_BROADCAST';
         const msgData = message;
         let previewText = adminBroadcastMessages.previewHeading;
-        if (msgData.type === 'text') previewText += msgData.text;
-        else
+        if (msgData.type === 'text') {
+            previewText += msgData.text;
+        } else {
             previewText +=
                 adminBroadcastMessages.mediaPreview(msgData.type) + (msgData.caption || '');
+        }
         previewText += adminBroadcastMessages.previewConfirmation(btnType);
         const kb = [];
         if (btnType !== 'none') {
@@ -70,10 +77,15 @@ export function registerBroadcasts(runtime: Runtime) {
             });
         }
     });
+
     bot.action('confirm_broadcast', async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         const msgData = adminBroadcastMsg[actorId(ctx)];
-        if (!msgData) return ctx.answerCbQuery(adminBroadcastMessages.missingText);
+        if (!msgData) {
+            return ctx.answerCbQuery(adminBroadcastMessages.missingText);
+        }
         delete adminBroadcastMsg[actorId(ctx)];
         const userIds = await getAllUserIds();
         for (const uid of userIds) {
@@ -82,5 +94,6 @@ export function registerBroadcasts(runtime: Runtime) {
         await ctx.answerCbQuery(adminBroadcastMessages.started);
         return ctx.reply(adminBroadcastMessages.queued(userIds.length), { parse_mode: 'Markdown' });
     });
+
     return {};
 }

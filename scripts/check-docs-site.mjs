@@ -25,16 +25,21 @@ const server = spawn(
     { stdio: 'inherit' },
 );
 let browser;
+
 try {
     let ready = false;
     for (let attempt = 0; attempt < 100; attempt++) {
-        if (server.exitCode !== null) throw new Error('Documentation preview exited.');
+        if (server.exitCode !== null) {
+            throw new Error('Documentation preview exited.');
+        }
         try {
             ready = (await fetch(origin + base)).ok;
         } catch {
             /* Wait for preview startup. */
         }
-        if (ready) break;
+        if (ready) {
+            break;
+        }
         await new Promise((resolve) => setTimeout(resolve, 200));
     }
     assert(ready, 'Documentation preview did not start.');

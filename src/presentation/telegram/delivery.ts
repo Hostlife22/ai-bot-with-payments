@@ -12,19 +12,29 @@ export function splitText(
     text: string,
     limit: number = TELEGRAM_LIMITS.messageCharacters,
 ): string[] {
-    if (limit < 1) throw new Error(errorMessages.invalidTextLimit);
+    if (limit < 1) {
+        throw new Error(errorMessages.invalidTextLimit);
+    }
     const chunks: string[] = [];
     for (let offset = 0; offset < text.length;) {
         let end = Math.min(offset + limit, text.length);
         const code = text.charCodeAt(end - 1);
-        if (end < text.length && code >= UTF16.highSurrogateStart && code <= UTF16.highSurrogateEnd)
+        if (
+            end < text.length &&
+            code >= UTF16.highSurrogateStart &&
+            code <= UTF16.highSurrogateEnd
+        ) {
             end--;
-        if (end === offset) end++;
+        }
+        if (end === offset) {
+            end++;
+        }
         chunks.push(text.slice(offset, end));
         offset = end;
     }
     return chunks.length ? chunks : [deliveryMessages.emptyText];
 }
+
 export async function deliverResponse(
     telegram: Telegram,
     job: AiJob,
@@ -38,10 +48,14 @@ export async function deliverResponse(
         const caption = splitText(response.text, TELEGRAM_LIMITS.captionCharacters)[0] ?? '';
         await telegram.sendPhoto(job.chatId, response.photo, { caption, ...options });
         const remainder = response.text.slice(caption.length);
-        if (remainder)
-            for (const chunk of splitText(remainder)) await telegram.sendMessage(job.chatId, chunk);
-        if (job.tempMsgId)
+        if (remainder) {
+            for (const chunk of splitText(remainder)) {
+                await telegram.sendMessage(job.chatId, chunk);
+            }
+        }
+        if (job.tempMsgId) {
             await telegram.deleteMessage(job.chatId, job.tempMsgId).catch(() => undefined);
+        }
         return;
     }
     const chunks = splitText(response.text);
@@ -50,6 +64,8 @@ export async function deliverResponse(
             await telegram
                 .editMessageText(job.chatId, job.tempMsgId, undefined, chunk, options)
                 .catch(() => telegram.sendMessage(job.chatId, chunk, options));
-        } else await telegram.sendMessage(job.chatId, chunk, options);
+        } else {
+            await telegram.sendMessage(job.chatId, chunk, options);
+        }
     }
 }

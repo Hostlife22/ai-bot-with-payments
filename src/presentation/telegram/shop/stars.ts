@@ -8,6 +8,7 @@ import { required } from '@domain/validation';
 
 export function registerStarsShop(runtime: StarsShopDependencies) {
     const { bot, repository, payments } = runtime;
+
     bot.action(/^pay_stars_([a-z0-9]+)$/, async (ctx) => {
         await ctx.answerCbQuery();
         const name = required(ctx.match[1]);
@@ -22,6 +23,7 @@ export function registerStarsShop(runtime: StarsShopDependencies) {
             prices: [{ label: starsMessages.price, amount: intent.amount }],
         });
     });
+
     bot.on('pre_checkout_query', async (ctx) => {
         const query = ctx.preCheckoutQuery;
         try {
@@ -34,12 +36,15 @@ export function registerStarsShop(runtime: StarsShopDependencies) {
                 provider: 'stars',
                 transactionId: query.id,
             });
-            if (intent.fulfilled_at) throw new Error(errorMessages.alreadyPaid);
+            if (intent.fulfilled_at) {
+                throw new Error(errorMessages.alreadyPaid);
+            }
             await ctx.answerPreCheckoutQuery(true);
         } catch {
             await ctx.answerPreCheckoutQuery(false, starsMessages.invalidInvoice);
         }
     });
+
     bot.on('successful_payment', async (ctx) => {
         const payment = ctx.message.successful_payment;
         const id = payment.invoice_payload.replace(/^purchase:/, '');
@@ -52,12 +57,13 @@ export function registerStarsShop(runtime: StarsShopDependencies) {
         });
         if (credited) {
             const user = await repository.requireUser(ctx.from.id);
-            if (!user.current_prompt || user.current_prompt === promptTemplates.prompt_flirt)
+            if (!user.current_prompt || user.current_prompt === promptTemplates.prompt_flirt) {
                 await repository.setUserPrompt(
                     ctx.from.id,
                     required(promptTemplates.prompt_default),
                     'default',
                 );
+            }
             await ctx.reply(starsMessages.paid);
         }
     });

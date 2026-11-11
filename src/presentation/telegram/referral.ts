@@ -9,7 +9,9 @@ export async function processReferral(
     },
     repository: Repository,
 ): Promise<void> {
-    if (!ctx.from) return;
+    if (!ctx.from) {
+        return;
+    }
     const userId = ctx.from.id;
     const match = /^ref_(\d+)$/.exec(ctx.payload);
     const candidate = match?.[1] ? Number(match[1]) : NaN;

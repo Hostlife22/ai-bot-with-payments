@@ -14,6 +14,7 @@ export function registerFunnels(runtime: Runtime) {
         getUsersForBonusNotify,
         markBonusNotified,
     } = repository;
+
     function startAutoFunnels() {
         timers.every(async () => {
             try {
@@ -71,5 +72,6 @@ export function registerFunnels(runtime: Runtime) {
             }
         }, FUNNELS.intervalMs);
     }
+
     startAutoFunnels();
 }

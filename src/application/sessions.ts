@@ -11,13 +11,16 @@ export function createSessions(): Sessions {
         touchedAt: {},
     };
 }
+
 export function pruneSessions(
     sessions: Sessions,
     now = Date.now(),
     ttl: number = SESSION_TIMING.ttlMs,
 ): void {
     for (const [id, touched] of Object.entries(sessions.touchedAt)) {
-        if (touched === undefined || now - touched <= ttl) continue;
+        if (touched === undefined || now - touched <= ttl) {
+            continue;
+        }
         delete sessions.touchedAt[id];
         delete sessions.lastMessageTime[id];
         delete sessions.userState[id];

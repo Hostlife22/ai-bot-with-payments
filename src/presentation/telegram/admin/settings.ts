@@ -13,6 +13,7 @@ export function registerSettings(runtime: Runtime) {
     const ADMIN_ID = config.adminId;
     const { userState } = sessions;
     const { isFreeModeEnabled, toggleFreeMode, resetAllFreeRequests, getAdminStats } = repository;
+
     async function renderAdminPanel(ctx: Context, isEdit = false) {
         const stats = await getAdminStats();
         const freeMode = await isFreeModeEnabled();
@@ -82,13 +83,19 @@ export function registerSettings(runtime: Runtime) {
         }
         return ctx.replyWithMarkdown(message, keyboard);
     }
+
     bot.command('admin', (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         delete userState[actorId(ctx)];
         return renderAdminPanel(ctx, false);
     });
+
     bot.action('toggle_free_mode', async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         const currentStatus = await isFreeModeEnabled();
         await toggleFreeMode(!currentStatus);
         await ctx.answerCbQuery(
@@ -98,12 +105,18 @@ export function registerSettings(runtime: Runtime) {
         );
         return renderAdminPanel(ctx, true);
     });
+
     bot.action('admin_back', async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         return renderAdminPanel(ctx, true);
     });
+
     bot.action('edit_texts_menu', async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         const kb = Markup.inlineKeyboard([
             [
                 Markup.button.callback(commonMessages.policy, 'edit_policy'),
@@ -134,6 +147,7 @@ export function registerSettings(runtime: Runtime) {
             adminSettingsMessages.channelUrlInstructions;
         return ctx.editMessageText(msg, { parse_mode: 'HTML', ...kb });
     });
+
     const adminWaitActions = [
         'edit_stars_url',
         'edit_policy',
@@ -143,9 +157,12 @@ export function registerSettings(runtime: Runtime) {
         'edit_bonus_channel_id',
         'edit_bonus_channel_url',
     ] as const;
+
     adminWaitActions.forEach((action) => {
         bot.action(action, async (ctx) => {
-            if (actorId(ctx) !== ADMIN_ID) return;
+            if (actorId(ctx) !== ADMIN_ID) {
+                return;
+            }
             userState[actorId(ctx)] = `WAITING_EDIT_${action.slice('edit_'.length).toUpperCase()}`;
             await ctx.answerCbQuery();
             return ctx.editMessageText(adminSettingsMessages.enterSetting, {
@@ -157,14 +174,20 @@ export function registerSettings(runtime: Runtime) {
             });
         });
     });
+
     bot.action('cancel_input', async (ctx) => {
         delete userState[actorId(ctx)];
         await ctx.answerCbQuery(adminSettingsMessages.canceled);
         await ctx.deleteMessage().catch(() => {});
-        if (actorId(ctx) === ADMIN_ID) return renderAdminPanel(ctx, false);
+        if (actorId(ctx) === ADMIN_ID) {
+            return renderAdminPanel(ctx, false);
+        }
     });
+
     bot.action('start_broadcast', async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         userState[actorId(ctx)] = 'WAITING_FOR_BROADCAST';
         await ctx.answerCbQuery();
         return ctx.editMessageText(adminSettingsMessages.enterBroadcast, {
@@ -173,8 +196,11 @@ export function registerSettings(runtime: Runtime) {
             },
         });
     });
+
     bot.action('admin_edit_pkgs', async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         const kb = Markup.inlineKeyboard([
             [
                 Markup.button.callback(adminSettingsMessages.text50Button, 'edit_pkg_t50'),
@@ -201,6 +227,7 @@ export function registerSettings(runtime: Runtime) {
             reply_markup: kb.reply_markup,
         });
     });
+
     ['lite', 'medium', 'hard', 'full', 't50', 't200', 't500', 'i5', 'i15', 'i50'].forEach((pkg) => {
         bot.action(`edit_pkg_${pkg}`, async (ctx) => {
             userState[actorId(ctx)] = `WAITING_EDIT_PKG_${pkg.toUpperCase()}`;
@@ -215,10 +242,14 @@ export function registerSettings(runtime: Runtime) {
             });
         });
     });
+
     bot.action('reset_free_limits', async (ctx) => {
-        if (actorId(ctx) !== ADMIN_ID) return;
+        if (actorId(ctx) !== ADMIN_ID) {
+            return;
+        }
         await resetAllFreeRequests(USER_REWARDS.initialTexts, USER_REWARDS.initialImages);
         return ctx.answerCbQuery(adminSettingsMessages.limitsReset, { show_alert: true });
     });
+
     return { renderAdminPanel };
 }

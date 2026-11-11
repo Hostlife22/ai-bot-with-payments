@@ -1,8 +1,40 @@
 import tseslint from 'typescript-eslint';
 
+import functionSpacing from './scripts/eslint/function-spacing.mjs';
+
+const readabilityRules = {
+    curly: ['error', 'all'],
+    'repository/function-spacing': 'error',
+    'lines-between-class-members': [
+        'error',
+        {
+            enforce: [
+                { blankLine: 'always', prev: 'method', next: '*' },
+                { blankLine: 'always', prev: '*', next: 'method' },
+            ],
+        },
+    ],
+    'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: '*', next: ['function', 'class'] },
+        { blankLine: 'always', prev: ['function', 'class'], next: '*' },
+    ],
+};
+
 export default tseslint.config(
     { ignores: ['dist/**', 'node_modules/**'] },
     ...tseslint.configs.recommended,
+    {
+        files: [
+            'src/**/*.ts',
+            'tests/**/*.ts',
+            'scripts/**/*.mjs',
+            'eslint.config.js',
+            '.vitepress/**/*.mts',
+        ],
+        plugins: { repository: { rules: { 'function-spacing': functionSpacing } } },
+        rules: readabilityRules,
+    },
     {
         files: ['src/**/*.ts', 'tests/**/*.ts'],
         languageOptions: {

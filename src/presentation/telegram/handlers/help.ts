@@ -9,10 +9,12 @@ import { actorId } from '@telegram/context';
 export function setupHelp(bot: Telegraf, repository: Repository) {
     const { getSetting, acceptTerms } = repository;
     bot.hears(commonMessages.help, showHelp);
+
     bot.action('menu_help', async (ctx) => {
         await ctx.answerCbQuery();
         return showHelp(ctx);
     });
+
     bot.action('tos_policy', async (ctx) => {
         const text = await getSetting('policy_text', helpMessages.missingPolicy);
         const user = await repository.requireUser(actorId(ctx));
@@ -33,6 +35,7 @@ export function setupHelp(bot: Telegraf, repository: Repository) {
             })
             .catch(() => {});
     });
+
     bot.action('tos_agreement', async (ctx) => {
         const text = await getSetting('agreement_text', helpMessages.missingAgreement);
         const user = await repository.requireUser(actorId(ctx));
@@ -53,6 +56,7 @@ export function setupHelp(bot: Telegraf, repository: Repository) {
             })
             .catch(() => {});
     });
+
     bot.action('tos_accept', async (ctx) => {
         const userId = actorId(ctx);
         await acceptTerms(userId);
@@ -72,6 +76,7 @@ export function setupHelp(bot: Telegraf, repository: Repository) {
             },
         });
     });
+
     async function showHelp(ctx: Context) {
         const faqText = await getSetting('faq_text', helpMessages.emptyFaq, true);
         const supportUrl = await getSetting('support_url', '');
