@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
+import { CURRENCIES } from '@constants/payments';
+import { errorMessages } from '@messages/errors';
 import type { PaymentGateway } from '@contracts/gateways';
 import type { PaymentProvider, PurchaseIntent, PurchaseStore } from '@contracts/purchases';
 import type { Catalog, PaymentCheckStatus, PaymentService } from '@contracts/services';
@@ -26,13 +28,13 @@ export function createPaymentService(
             packageName,
             textCount: pack.text,
             imageCount: pack.img,
-            currency: provider === 'stars' ? 'XTR' : 'RUB',
+            currency: provider === 'stars' ? CURRENCIES.stars : CURRENCIES.rubles,
             amount: discountedPrice(provider === 'stars' ? pack.stars : pack.rub, discount),
         });
     }
     async function checkPlatega(intent: PurchaseIntent): Promise<PaymentCheckStatus> {
         if (intent.provider !== 'platega' || !intent.provider_tx_id)
-            throw new Error('Not a Platega purchase');
+            throw new Error(errorMessages.notPlategaPurchase);
         const status = await platega.checkPlategaInvoice(intent.provider_tx_id);
         if (!status) return 'UNAVAILABLE';
         if (status.status !== 'CONFIRMED') {
@@ -43,7 +45,7 @@ export function createPaymentService(
             return 'PENDING';
         }
         if (status.payload !== `purchase:${intent.id}`)
-            throw new Error('Provider payload mismatch');
+            throw new Error(errorMessages.providerPayloadMismatch);
         const credited = await store.fulfill(intent.id, {
             userId: intent.user_id,
             provider: 'platega',

@@ -13,8 +13,10 @@
 | `src/main.ts`                | 加载配置、启动应用并报告启动失败。                         |
 | `src/bootstrap/`             | 组装适配器、注册处理器并管理资源。                         |
 | `src/config/`                | 在启动服务前验证环境变量。                                 |
+| `src/constants/`             | 具名限制、超时、奖励、默认套餐和提供商设置。               |
+| `src/messages/`              | 用户文本、类型化格式函数、错误和日志消息、提示词及主题。   |
 | `src/types/`                 | 模型、仓储和服务契约，以及处理器依赖类型。                 |
-| `src/domain/`                | 支付校验、输入校验、角色和默认套餐。                       |
+| `src/domain/`                | 支付校验、输入校验、角色。                                 |
 | `src/application/`           | AI 用例、套餐目录、支付、会话和定时器。                    |
 | `src/infrastructure/`        | PostgreSQL、Redis/BullMQ、OpenRouter、Platega 和本地图片。 |
 | `src/presentation/telegram/` | 中间件、菜单、消息投递、商店和管理界面。                   |
@@ -81,3 +83,7 @@ worker 校验 `AiJob`，在启用 `shouldDecrement` 时原子地预留消息额�
 收到 `SIGINT` 或 `SIGTERM` 后停止 polling，关闭定时器并等待活动任务，等待当前 Telegram 更新，依次关闭 worker、队列和连接池。重复停止请求共享同一个完成 Promise。
 
 原子余额操作防止并发超额扣减，但外部 AI 调用不保证 exactly-once。预留额度没有独立的崩溃恢复账本；会话和本地限流不跨进程共享。参见[运维](operations.md)。
+
+## 常量与消息
+
+使用 `@constants/*` 管理规则和运行参数，使用 `@messages/*` 管理文本。通用按钮位于 `messages/common.ts`，错误和日志分别存放。动态文本使用类型化格式函数；展示的限制和奖励应引用服务使用的同一常量。ESLint 禁止业务模块中的魔法数字和内联错误/Telegram 回复文本；零、一、数组索引和字面量类型保留其结构含义。

@@ -1,4 +1,6 @@
-export const imageStyles: Record<string, string> = {
+import type { ImageStyles } from '@contracts/messages';
+
+export const imageStyles = {
     flirt: 'boudoir photography, intimate atmosphere, sensual gaze, elegant silk sleepwear, implied sensuality, cozy bedroom, cinematic lighting',
     flirthot:
         'boudoir photography, highly intimate, seductive pose, lingerie, intense lighting, steamy atmosphere, high contrast',
@@ -15,4 +17,4 @@ export const imageStyles: Record<string, string> = {
     psych: 'cozy therapy room, warm soft lighting, comfortable oversized sweater, empathetic gaze, calm demeanor',
     default: 'beautiful aesthetic portrait, realistic, highly detailed, professional photography',
     custom: 'beautiful aesthetic portrait, realistic, highly detailed, professional photography',
-};
+} as const satisfies ImageStyles;

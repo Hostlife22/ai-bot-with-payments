@@ -1,3 +1,4 @@
+import { logMessages } from '@messages/logs';
 import type {
     ApplicationLifecycle,
     LifecycleDependencies,
@@ -31,7 +32,7 @@ export function createLifecycle({
         const results = await Promise.allSettled(workers.map((worker) => worker.close()));
         for (const result of results)
             if (result.status === 'rejected')
-                console.error('Worker shutdown failed', result.reason);
+                console.error(logMessages.workerShutdownFailed, result.reason);
         if (queues)
             await Promise.allSettled([queues.aiQueue.close(), queues.broadcastQueue.close()]);
         await pool.end();
@@ -52,7 +53,7 @@ export function createLifecycle({
             for (const signal of ['SIGINT', 'SIGTERM'] as const)
                 process.once(signal, () => {
                     void shutdown(signal).catch((error) => {
-                        console.error('Shutdown failed', error);
+                        console.error(logMessages.shutdownFailed, error);
                         process.exitCode = 1;
                     });
                 });

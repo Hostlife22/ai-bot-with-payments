@@ -46,7 +46,7 @@ REDIS_URL=redis://127.0.0.1:16379/0
 
 用户名和密码中的特殊字符需要 URL 编码。机器人容器应使用其他服务的名称，而不是 `localhost`。
 
-[Redis 适配器](../../src/infrastructure/queues/redis.ts) 从 URL 保留用户名、密码和数据库编号；`rediss:` 启用 TLS，连接使用 IPv4。这些选项没有独立的环境变量。
+[Redis `src/constants/payments.ts`](../../src/infrastructure/queues/redis.ts) 从 URL 保留用户名、密码和数据库编号；`rediss:` 启用 TLS，连接使用 IPv4。这些选项没有独立的环境变量。
 
 ## 数据库中的设置
 
@@ -64,19 +64,25 @@ REDIS_URL=redis://127.0.0.1:16379/0
 
 以下配置目前不能通过 `.env` 覆盖：
 
-| 参数                                                  | 文件                                                                                  |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| 模型、文字提供方、`max_tokens`、OpenRouter 超时和重试 | [openrouter.ts](../../src/infrastructure/ai/openrouter.ts)                            |
-| Platega API 地址及 `return`、`failedUrl`              | [platega.ts](../../src/infrastructure/payments/platega.ts)                            |
-| 初始套餐                                              | [packages.ts](../../src/domain/packages.ts)                                           |
-| 角色与系统提示词                                      | [roles.ts](../../src/domain/roles.ts)、[prompts.ts](../../src/application/prompts.ts) |
-| AI 频率限制及图片费用阈值                             | [ai.ts](../../src/application/ai.ts)                                                  |
-| 支付轮询周期                                          | [polling.ts](../../src/presentation/telegram/shop/polling.ts)                         |
+| 参数                                                  | 文件                                                                               |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 模型、文字提供方、`max_tokens`、OpenRouter 超时和重试 | [ai.ts](../../src/constants/ai.ts)                                                 |
+| Platega API 地址及 `return`、`failedUrl`              | [payments.ts](../../src/constants/payments.ts)                                     |
+| 初始套餐                                              | [packages.ts](../../src/constants/packages.ts)                                     |
+| 角色与系统提示词                                      | [roles.ts](../../src/domain/roles.ts)、[prompts.ts](../../src/messages/prompts.ts) |
+| AI 频率限制及图片费用阈值                             | [ai.ts](../../src/constants/ai.ts)                                                 |
+| 支付轮询周期                                          | [payments.ts](../../src/constants/payments.ts)                                     |
 
-启用 Platega 前请检查返回链接：适配器目前保留了 `https://t.me/evaflirt_bot`。
+启用 Platega 前请检查返回链接：`src/constants/payments.ts`目前保留了 `https://t.me/evaflirt_bot`。
 
 ## 初始图片
 
 `src/assets/free_pics/` 相对于应用工作目录解析，支持普通 `.jpg`、`.jpeg`、`.png` 和 `.webp` 文件。请使用拥有相应使用权的图片。
 
 Docker 会把图片复制进镜像，新增文件后需要重新构建。当前没有配置宿主机图片目录挂载。找不到可用本地图片时，机器人返回不可用提示并返还图片预留额度。
+
+## 常量与消息
+
+使用 `@constants/*` 管理规则和运行参数，使用 `@messages/*` 管理文本。通用按钮位于 `messages/common.ts`，错误和日志分别存放。动态文本使用类型化格式函数；展示的限制和奖励应引用服务使用的同一常量。ESLint 禁止业务模块中的魔法数字和内联错误/Telegram 回复文本；零、一、数组索引和字面量类型保留其结构含义。
+
+修改常量后请重新构建。已保存的 `pkg_*` 设置优先于 `DEFAULT_PACKAGES`；现有套餐价格和数量应通过管理面板更新。

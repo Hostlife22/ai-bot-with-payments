@@ -1,6 +1,8 @@
 import OpenAI from 'openai';
 import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
 
+import { OPENROUTER } from '@constants/ai';
+import { errorMessages } from '@messages/errors';
 import type { AiGateway } from '@contracts/ai';
 import type { AiResponse } from '@contracts/conversation';
 
@@ -25,10 +27,10 @@ function reportedCost(usage: unknown): number | undefined {
 }
 export function createOpenRouterGateway(apiKey: string): AiGateway {
     const client = new OpenAI({
-        baseURL: 'https://openrouter.ai/api/v1',
+        baseURL: OPENROUTER.baseUrl,
         apiKey,
-        timeout: 120000,
-        maxRetries: 1,
+        timeout: OPENROUTER.timeoutMs,
+        maxRetries: OPENROUTER.maxRetries,
     });
     return {
         async complete(system, history, text) {
@@ -38,27 +40,29 @@ export function createOpenRouterGateway(apiKey: string): AiGateway {
                     allow_fallbacks: boolean;
                 };
             } = {
-                model: 'deepseek/deepseek-v4-flash',
+                model: OPENROUTER.textModel,
                 messages: [
                     { role: 'system', content: system },
                     ...history,
                     { role: 'user', content: text },
                 ],
-                max_tokens: 1024,
-                provider: { order: ['SiliconFlow'], allow_fallbacks: false },
+                max_tokens: OPENROUTER.maxCompletionTokens,
+                provider: { order: [OPENROUTER.preferredProvider], allow_fallbacks: false },
             };
             const result = await client.chat.completions.create(parameters);
             const content = result.choices[0]?.message.content;
-            if (!content) throw new Error('OpenRouter returned an empty completion');
+            if (!content) throw new Error(errorMessages.emptyCompletion);
             const usage = result.usage;
             const estimate = usage
-                ? (usage.prompt_tokens * 0.13 + usage.completion_tokens * 0.28) / 1000000
+                ? (usage.prompt_tokens * OPENROUTER.promptUsdPerMillionTokens +
+                      usage.completion_tokens * OPENROUTER.completionUsdPerMillionTokens) /
+                  OPENROUTER.tokensPerPricingUnit
                 : 0;
             return { text: content, cost: reportedCost(usage) ?? estimate };
         },
         async image(prompt) {
             const result = await client.chat.completions.create({
-                model: 'x-ai/grok-imagine-image-quality',
+                model: OPENROUTER.imageModel,
                 messages: [{ role: 'user', content: prompt }],
             });
             const message = parseImageMessage(result.choices[0]?.message);

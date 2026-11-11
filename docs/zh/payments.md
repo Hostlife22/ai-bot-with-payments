@@ -8,7 +8,7 @@
 
 ## 套餐
 
-默认值来自 [packages.ts](../../src/domain/packages.ts)：
+默认值来自 [packages.ts](../../src/constants/packages.ts)：
 
 | 套餐     | Stars | RUB | 消息 | 图片 |
 | -------- | ----: | --: | ---: | ---: |

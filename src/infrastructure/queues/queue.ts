@@ -1,5 +1,8 @@
 import { Queue, Worker } from 'bullmq';
 
+import { QUEUES } from '@constants/queues';
+import { aiMessages } from '@messages/ai';
+import { logMessages } from '@messages/logs';
 import type { AiJob } from '@contracts/jobs';
 import type { AiQueueDependencies } from '@contracts/queues';
 
@@ -8,18 +11,18 @@ import { parseAiJob } from './schemas.js';
 
 export function createAiQueue({ redisUrl, repository, ai, deliver }: AiQueueDependencies) {
     const connection = redisConnection(redisUrl);
-    const aiQueue = new Queue<AiJob>('ai-requests', {
+    const aiQueue = new Queue<AiJob>(QUEUES.aiName, {
         connection,
         defaultJobOptions: {
-            removeOnComplete: { count: 1000 },
-            removeOnFail: { count: 1000 },
-            attempts: 1,
+            removeOnComplete: { count: QUEUES.retainedCompletedJobs },
+            removeOnFail: { count: QUEUES.retainedFailedJobs },
+            attempts: QUEUES.attempts,
         },
     });
-    aiQueue.on('error', (error) => console.error('AI queue error', error));
+    aiQueue.on('error', (error) => console.error(logMessages.aiQueueFailed, error));
     function startWorker() {
         const worker = new Worker<AiJob>(
-            'ai-requests',
+            QUEUES.aiName,
             async (job) => {
                 const data = parseAiJob(job.data);
                 let reserved = false;
@@ -28,7 +31,7 @@ export function createAiQueue({ redisUrl, repository, ai, deliver }: AiQueueDepe
                         reserved = await repository.reserveBalance(data.userId, 'text');
                         if (!reserved) {
                             await deliver(data, {
-                                text: '❌ Сообщения закончились. Пополни баланс в магазине.',
+                                text: aiMessages.messagesExhausted,
                                 photo: null,
                                 showBuyButton: true,
                             });
@@ -44,17 +47,17 @@ export function createAiQueue({ redisUrl, repository, ai, deliver }: AiQueueDepe
                 } catch (error) {
                     if (reserved) await repository.refundBalance(data.userId, 'text');
                     await deliver(data, {
-                        text: '❌ Произошла ошибка генерации ответа. Попробуй позже.',
+                        text: aiMessages.generationFailed,
                         photo: null,
                     }).catch(() => undefined);
                     throw error;
                 }
             },
-            { connection, concurrency: 5 },
+            { connection, concurrency: QUEUES.aiConcurrency },
         );
-        worker.on('error', (error) => console.error('AI worker error', error));
+        worker.on('error', (error) => console.error(logMessages.aiWorkerFailed, error));
         worker.on('failed', (job, error) =>
-            console.error('AI job failed', { jobId: job?.id, error }),
+            console.error(logMessages.aiJobFailed, { jobId: job?.id, error }),
         );
         return worker;
     }

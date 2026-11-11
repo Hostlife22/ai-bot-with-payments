@@ -1,5 +1,6 @@
 import type { Pool } from 'pg';
 
+import { AI_LIMITS } from '@constants/ai';
 import type { HistoryMessage } from '@contracts/conversation';
 import type { ConversationRepository } from '@contracts/repositories';
 import type { RoleMode, UserId } from '@contracts/user';
@@ -22,7 +23,7 @@ export function createConversationRepository(pool: Pool): ConversationRepository
             [userId, role, content, cost],
         );
     }
-    async function getHistory(userId: UserId, limit = 10) {
+    async function getHistory(userId: UserId, limit: number = AI_LIMITS.historyMessages) {
         const res = await pool.query<HistoryMessage>(
             'SELECT role, content FROM messages WHERE user_id = $1 ORDER BY id DESC LIMIT $2',
             [userId, limit],

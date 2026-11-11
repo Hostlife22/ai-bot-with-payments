@@ -2,24 +2,27 @@ import { Queue, Worker } from 'bullmq';
 import type { Telegraf } from 'telegraf';
 import type { InlineKeyboardMarkup as Keyboard } from 'telegraf/types';
 
+import { QUEUES } from '@constants/queues';
+import { commonMessages } from '@messages/common';
+import { logMessages } from '@messages/logs';
 import type { BroadcastJob } from '@contracts/jobs';
 
 import { redisConnection } from './redis.js';
 
 export function createBroadcastQueue(redisUrl: string) {
     const connection = redisConnection(redisUrl);
-    const broadcastQueue = new Queue<BroadcastJob>('broadcast', {
+    const broadcastQueue = new Queue<BroadcastJob>(QUEUES.broadcastName, {
         connection,
         defaultJobOptions: {
-            removeOnComplete: { count: 1000 },
-            removeOnFail: { count: 1000 },
-            attempts: 1,
+            removeOnComplete: { count: QUEUES.retainedCompletedJobs },
+            removeOnFail: { count: QUEUES.retainedFailedJobs },
+            attempts: QUEUES.attempts,
         },
     });
-    broadcastQueue.on('error', (error) => console.error('Broadcast queue error', error));
+    broadcastQueue.on('error', (error) => console.error(logMessages.broadcastQueueFailed, error));
     function startBroadcastWorker(bot: Telegraf) {
         const worker = new Worker<BroadcastJob>(
-            'broadcast',
+            QUEUES.broadcastName,
             async (job) => {
                 const { userId, msgData } = job.data;
                 const data = msgData || {
@@ -31,11 +34,11 @@ export function createBroadcastQueue(redisUrl: string) {
                     let replyMarkup: Keyboard | undefined;
                     if (data.btn && data.btn !== 'none') {
                         const btnNames: Record<string, string> = {
-                            profile: '👤 Профиль',
-                            ai: '🧠 Настройка ИИ',
-                            refs: '👥 Рефералы',
-                            help: '🆘 Помощь',
-                            store: '⭐️ Магазин',
+                            profile: commonMessages.profile,
+                            ai: commonMessages.aiSettings,
+                            refs: commonMessages.referrals,
+                            help: commonMessages.help,
+                            store: commonMessages.store,
                         };
                         const cbData: Record<string, string> = {
                             profile: 'menu_profile',
@@ -85,17 +88,19 @@ export function createBroadcastQueue(redisUrl: string) {
                             ...(replyMarkup ? { reply_markup: replyMarkup } : {}),
                         });
                     }
-                    await new Promise((resolve) => setTimeout(resolve, 35));
+                    await new Promise((resolve) =>
+                        setTimeout(resolve, QUEUES.broadcastDeliveryDelayMs),
+                    );
                 } catch (error) {
-                    console.error('Broadcast delivery failed', { userId, error });
+                    console.error(logMessages.broadcastDeliveryFailed, { userId, error });
                 }
             },
             {
                 connection,
-                concurrency: 1,
+                concurrency: QUEUES.broadcastConcurrency,
             },
         );
-        worker.on('error', (error) => console.error('Broadcast worker error', error));
+        worker.on('error', (error) => console.error(logMessages.broadcastWorkerFailed, error));
         return worker;
     }
     return { broadcastQueue, startBroadcastWorker };

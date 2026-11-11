@@ -1,6 +1,7 @@
 import pg from 'pg';
 import { Telegraf } from 'telegraf';
 
+import { SESSION_TIMING } from '@constants/time';
 import type { AppConfig } from '@contracts/config';
 import { pruneSessions } from '@app/sessions';
 import { Timers } from '@app/timers';
@@ -21,7 +22,7 @@ export async function startApplication(config: AppConfig): Promise<void> {
         const runtime = createRuntime(config, repository, pool, timers, bot);
         lifecycle.attachQueues(runtime.queues);
         registerTelegram(runtime);
-        timers.every(() => pruneSessions(runtime.sessions), 15 * 60000);
+        timers.every(() => pruneSessions(runtime.sessions), SESSION_TIMING.cleanupIntervalMs);
         await bot.telegram.getMe();
         const workers = [runtime.queues.startWorker(), runtime.queues.startBroadcastWorker(bot)];
         lifecycle.attachWorkers(workers);

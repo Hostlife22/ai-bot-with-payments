@@ -4,6 +4,8 @@ import { test } from 'node:test';
 import { Telegraf } from 'telegraf';
 
 import type { User } from '@contracts/user';
+import { createCatalog } from '@app/catalog';
+import { registerMenuShop } from '@shop/menu';
 import { registerCore } from '@telegram/core';
 
 const user: User = {
@@ -35,6 +37,7 @@ function fixture(overrides: Partial<User> = {}) {
         supports_inline_queries: false,
     };
     const replies: string[] = [];
+    const buttons: string[] = [];
     const answers: string[] = [];
     let writes = 0;
     let reached = false;
@@ -42,7 +45,11 @@ function fixture(overrides: Partial<User> = {}) {
         answers.push(text ?? '');
         return true as const;
     };
-    bot.context.reply = async (text) => {
+    bot.context.reply = async (text, extra) => {
+        const markup = extra?.reply_markup;
+        if (markup && 'inline_keyboard' in markup) {
+            buttons.push(...markup.inline_keyboard.flat().map((button) => button.text));
+        }
         replies.push(String(text));
         return {
             message_id: 1,
@@ -63,8 +70,9 @@ function fixture(overrides: Partial<User> = {}) {
         config: { adminId: 99 },
         sessions: { touchedAt: {} },
     });
-    bot.use(() => {
+    bot.use((_ctx, next) => {
         reached = true;
+        return next();
     });
     async function callback(data: string): Promise<void> {
         await bot.handleUpdate({
@@ -83,7 +91,15 @@ function fixture(overrides: Partial<User> = {}) {
             },
         });
     }
-    return { callback, replies, answers, writes: () => writes, reached: () => reached };
+    return {
+        bot,
+        buttons,
+        callback,
+        replies,
+        answers,
+        writes: () => writes,
+        reached: () => reached,
+    };
 }
 void test('forged admin callback is rejected before database mutations', async () => {
     const app = fixture();
@@ -105,4 +121,35 @@ void test('terms acceptance remains accessible and blocked accounts stay blocked
     const blocked = fixture({ is_blocked: true });
     await blocked.callback('menu_profile');
     assert.equal(blocked.reached(), false);
+});
+
+void test('shop prices and labels use configured package quantities and discounts', async () => {
+    const app = fixture();
+    const settings: Record<string, string> = { pkg_t50: '35_50_73_0', pkg_lite: '65_80_61_7' };
+    registerMenuShop({
+        bot: app.bot,
+        repository: {
+            requireUser: async () => ({ ...user, current_discount: 20 }),
+            getSetting: async (_key, fallback) => String(fallback),
+            setStoreOpened: async () => undefined,
+        },
+        catalog: createCatalog({
+            getSetting: async (key, fallback) => settings[key] ?? String(fallback),
+            setSetting: async () => undefined,
+        }),
+    });
+    await app.bot.handleUpdate({
+        update_id: 2,
+        message: {
+            message_id: 1,
+            date: 0,
+            from: { id: 42, is_bot: false, first_name: 'Test' },
+            chat: { id: 42, type: 'private', first_name: 'Test' },
+            text: '/buy',
+            entities: [{ type: 'bot_command', offset: 0, length: 4 }],
+        },
+    });
+    assert(app.replies.some((text) => text.includes('• 73 шт. — 40₽ | 28⭐️')));
+    assert(app.replies.some((text) => text.includes('• Lite (61💬 + 7📸) — 64₽ | 52⭐️')));
+    assert(app.buttons.includes('💬 73'));
 });

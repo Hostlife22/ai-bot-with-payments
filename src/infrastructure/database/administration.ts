@@ -1,5 +1,8 @@
 import type { Pool } from 'pg';
 
+import { DATABASE, STATISTICS_WINDOWS } from '@constants/database';
+import { DECIMAL_RADIX } from '@constants/numbers';
+import { USER_REWARDS } from '@constants/users';
 import type { Payment } from '@contracts/billing';
 import type { AdminRepository } from '@contracts/repositories';
 import type { AdminStats } from '@contracts/statistics';
@@ -10,14 +13,19 @@ export function createAdminRepository(pool: Pool): AdminRepository {
     async function getAdminStats() {
         const usersQuery = `
         SELECT 
-            COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '1 day') as day,
-            COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days') as week,
-            COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '30 days') as month,
-            COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '365 days') as year,
+            COUNT(*) FILTER (WHERE created_at >= NOW() - $1::interval) as day,
+            COUNT(*) FILTER (WHERE created_at >= NOW() - $2::interval) as week,
+            COUNT(*) FILTER (WHERE created_at >= NOW() - $3::interval) as month,
+            COUNT(*) FILTER (WHERE created_at >= NOW() - $4::interval) as year,
             COUNT(*) as total
         FROM users;
     `;
-        const usersRes = await pool.query<AdminStats['users']>(usersQuery);
+        const usersRes = await pool.query<AdminStats['users']>(usersQuery, [
+            STATISTICS_WINDOWS.day,
+            STATISTICS_WINDOWS.week,
+            STATISTICS_WINDOWS.month,
+            STATISTICS_WINDOWS.year,
+        ]);
         const users = required(usersRes.rows[0]);
         const revRes = await pool.query<AdminStats['revenue']>(`
         SELECT 
@@ -30,23 +38,31 @@ export function createAdminRepository(pool: Pool): AdminRepository {
         }>('SELECT COALESCE(SUM(total_api_cost), 0) as api_cost FROM users');
         const costTimeQuery = `
         SELECT 
-            COALESCE(SUM(cost) FILTER (WHERE created_at >= NOW() - INTERVAL '1 minute'), 0) as min,
-            COALESCE(SUM(cost) FILTER (WHERE created_at >= NOW() - INTERVAL '1 hour'), 0) as hour,
-            COALESCE(SUM(cost) FILTER (WHERE created_at >= NOW() - INTERVAL '1 day'), 0) as day,
-            COALESCE(SUM(cost) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days'), 0) as week,
-            COALESCE(SUM(cost) FILTER (WHERE created_at >= NOW() - INTERVAL '30 days'), 0) as month,
+            COALESCE(SUM(cost) FILTER (WHERE created_at >= NOW() - $4::interval), 0) as min,
+            COALESCE(SUM(cost) FILTER (WHERE created_at >= NOW() - $5::interval), 0) as hour,
+            COALESCE(SUM(cost) FILTER (WHERE created_at >= NOW() - $1::interval), 0) as day,
+            COALESCE(SUM(cost) FILTER (WHERE created_at >= NOW() - $2::interval), 0) as week,
+            COALESCE(SUM(cost) FILTER (WHERE created_at >= NOW() - $3::interval), 0) as month,
             COALESCE(SUM(cost), 0) as total
         FROM messages;
     `;
-        const costTimeRes = await pool.query<AdminStats['api_costs_time']>(costTimeQuery);
+        const costTimeRes = await pool.query<AdminStats['api_costs_time']>(costTimeQuery, [
+            STATISTICS_WINDOWS.day,
+            STATISTICS_WINDOWS.week,
+            STATISTICS_WINDOWS.month,
+            STATISTICS_WINDOWS.minute,
+            STATISTICS_WINDOWS.hour,
+        ]);
         const funnelQuery = `
         SELECT
             (SELECT COUNT(*) FROM users) as total_users,
-            (SELECT COUNT(*) FROM users WHERE text_balance < 10) as spent_free,
+            (SELECT COUNT(*) FROM users WHERE text_balance < $1) as spent_free,
             (SELECT COUNT(*) FROM users WHERE store_opened_at IS NOT NULL) as store_opened,
             (SELECT COUNT(*) FROM users WHERE has_purchased = TRUE) as paid
     `;
-        const funnelRes = await pool.query<AdminStats['funnel']>(funnelQuery);
+        const funnelRes = await pool.query<AdminStats['funnel']>(funnelQuery, [
+            USER_REWARDS.initialTexts,
+        ]);
         const funnel = required(funnelRes.rows[0]);
         const api_costs_time = required(costTimeRes.rows[0]);
         const revenue = required(revRes.rows[0]);
@@ -63,7 +79,7 @@ export function createAdminRepository(pool: Pool): AdminRepository {
         const res = await pool.query<{
             count: string;
         }>('SELECT COUNT(*) FROM users');
-        return parseInt(required(res.rows[0]).count, 10);
+        return parseInt(required(res.rows[0]).count, DECIMAL_RADIX);
     }
     async function getUsersPage(limit: number, offset: number) {
         const res = await pool.query<
@@ -76,8 +92,8 @@ export function createAdminRepository(pool: Pool): AdminRepository {
     }
     async function getPaymentHistory(userId: UserId) {
         const res = await pool.query<Payment>(
-            'SELECT * FROM payments WHERE user_id = $1 ORDER BY created_at DESC LIMIT 10',
-            [userId],
+            'SELECT * FROM payments WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2',
+            [userId, DATABASE.recentPayments],
         );
         return res.rows;
     }

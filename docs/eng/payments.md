@@ -8,7 +8,7 @@ A purchase snapshot is saved before an invoice is issued. Later price changes do
 
 ## Packages
 
-Defaults from [packages.ts](../../src/domain/packages.ts):
+Defaults from [packages.ts](../../src/constants/packages.ts):
 
 | Package  | Stars | RUB | Messages | Photos |
 | -------- | ----: | --: | -------: | -----: |

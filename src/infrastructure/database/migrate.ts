@@ -2,6 +2,8 @@ import { readFile } from 'node:fs/promises';
 
 import type { Pool } from 'pg';
 
+import { DATABASE } from '@constants/database';
+
 import { transaction } from './transaction.js';
 
 export async function migrate(pool: Pool): Promise<void> {
@@ -13,7 +15,7 @@ export async function migrate(pool: Pool): Promise<void> {
         })),
     );
     await transaction(pool, async (client) => {
-        await client.query('SELECT pg_advisory_xact_lock(718305412)');
+        await client.query('SELECT pg_advisory_xact_lock($1)', [DATABASE.migrationLockId]);
         await client.query(
             'CREATE TABLE IF NOT EXISTS schema_migrations (name TEXT PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW())',
         );

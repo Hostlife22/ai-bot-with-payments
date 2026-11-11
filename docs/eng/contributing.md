@@ -60,3 +60,7 @@ Update affected documentation and the `Unreleased` section of [CHANGELOG.md](cha
 Contributions use the project's [MIT license](../../LICENSE). Added third-party code must retain its notices and compatible distribution terms.
 
 - [GitHub automation and documentation website checks](ci-cd.md)
+
+## Constants and messages
+
+Use `@constants/*` for policy and runtime values, and `@messages/*` for text. Shared buttons live in `messages/common.ts`; errors and logs have separate catalogs. Keep dynamic text in typed formatter functions, and derive displayed limits and rewards from the same constants used by services. ESLint rejects magic numbers and inline error/Telegram reply strings in implementation modules; zero, one, array indexes and type literals retain their structural meaning.

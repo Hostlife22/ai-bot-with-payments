@@ -1,3 +1,8 @@
+import { AI_LIMITS } from '@constants/ai';
+import { TIME } from '@constants/time';
+import { commonMessages } from '@messages/common';
+import { conversationMessages } from '@messages/conversation';
+import { modeNames, themeConfig } from '@messages/themes';
 import type { BroadcastMessage } from '@contracts/jobs';
 import type { Runtime } from '@contracts/runtime';
 import type { AdminHandlers, Core } from '@contracts/telegram';
@@ -9,7 +14,6 @@ import { setupProfile } from '@handlers/profile';
 import { registerAdminInput } from './admin-input.js';
 import { actorId, chatId } from './context.js';
 import { processReferral } from './referral.js';
-import { modeNames, themeConfig } from './themes.js';
 
 export function registerConversation(runtime: Runtime, core: Core, admin: AdminHandlers) {
     const { bot, repository, config, sessions, queues } = runtime;
@@ -30,15 +34,12 @@ export function registerConversation(runtime: Runtime, core: Core, admin: AdminH
         await processReferral(ctx, repository);
         const user = await repository.requireUser(ctx.from.id);
         if (user.is_blocked && ctx.from.id !== ADMIN_ID)
-            return ctx.reply('❌ Ваш аккаунт заблокирован.');
+            return ctx.reply(commonMessages.accountBlocked);
         await repository.updateUserMeta(ctx.from.id, ctx.from.first_name, ctx.from.username);
         if (!(await requireTerms(ctx, actorId(ctx)))) return;
-        return ctx.reply(
-            'Привет! Я нейросеть. Воспользуйся меню ниже для настройки и управления профилем 👇',
-            getMainKeyboard(actorId(ctx)),
-        );
+        return ctx.reply(conversationMessages.welcome, getMainKeyboard(actorId(ctx)));
     });
-    bot.hears('👑 Админ-панель', (ctx) => {
+    bot.hears(commonMessages.adminPanel, (ctx) => {
         if (actorId(ctx) !== ADMIN_ID) return;
         delete userState[actorId(ctx)];
         return renderAdminPanel(ctx, false);
@@ -72,26 +73,26 @@ export function registerConversation(runtime: Runtime, core: Core, admin: AdminH
                 caption: ctx.message.caption || '',
                 btn: 'none',
             };
-            return ctx.reply(
-                `Медиа получено. Хотите добавить кнопку к рассылке? Выберите из меню ниже:`,
-                {
-                    reply_markup: {
-                        inline_keyboard: [
-                            [
-                                { text: '👤 Профиль', callback_data: 'broadcast_btn_profile' },
-                                { text: '🧠 Настройка ИИ', callback_data: 'broadcast_btn_ai' },
-                            ],
-                            [
-                                { text: '👥 Рефералы', callback_data: 'broadcast_btn_refs' },
-                                { text: '🆘 Помощь', callback_data: 'broadcast_btn_help' },
-                            ],
-                            [{ text: '⭐️ Магазин', callback_data: 'broadcast_btn_store' }],
-                            [{ text: 'Без кнопки', callback_data: 'broadcast_btn_none' }],
-                            [{ text: '❌ Отмена', callback_data: 'cancel_input' }],
+            return ctx.reply(conversationMessages.broadcastMediaPrompt, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: commonMessages.profile,
+                                callback_data: 'broadcast_btn_profile',
+                            },
+                            { text: commonMessages.aiSettings, callback_data: 'broadcast_btn_ai' },
                         ],
-                    },
+                        [
+                            { text: commonMessages.referrals, callback_data: 'broadcast_btn_refs' },
+                            { text: commonMessages.help, callback_data: 'broadcast_btn_help' },
+                        ],
+                        [{ text: commonMessages.store, callback_data: 'broadcast_btn_store' }],
+                        [{ text: commonMessages.noButton, callback_data: 'broadcast_btn_none' }],
+                        [{ text: commonMessages.cancel, callback_data: 'cancel_input' }],
+                    ],
                 },
-            );
+            });
         }
     });
     bot.on('text', async (ctx) => {
@@ -103,34 +104,31 @@ export function registerConversation(runtime: Runtime, core: Core, admin: AdminH
         if (userState[userId] === 'WAITING_FOR_PROMOCODE') {
             const promo = await activatePromocode(userId, text.trim().toUpperCase());
             delete userState[userId];
-            if (promo === 'NOT_FOUND') return ctx.reply('❌ Промокод не найден.');
-            if (promo === 'INACTIVE') return ctx.reply('❌ Этот промокод больше не активен.');
-            if (promo === 'LIMIT_EXCEEDED')
-                return ctx.reply('❌ Количество активаций этого промокода исчерпано.');
-            if (promo === 'ALREADY_USED') return ctx.reply('❌ Вы уже использовали этот промокод.');
-            if (promo === 'ONLY_NEW')
-                return ctx.reply(
-                    '❌ Этот промокод действует только для новых пользователей на первую покупку.',
-                );
+            if (promo === 'NOT_FOUND') return ctx.reply(conversationMessages.promoNotFound);
+            if (promo === 'INACTIVE') return ctx.reply(conversationMessages.promoInactive);
+            if (promo === 'LIMIT_EXCEEDED') return ctx.reply(conversationMessages.promoExhausted);
+            if (promo === 'ALREADY_USED') return ctx.reply(conversationMessages.promoAlreadyUsed);
+            if (promo === 'ONLY_NEW') return ctx.reply(conversationMessages.promoNewUsersOnly);
             if (promo) {
-                let msg = '✅ *Промокод успешно активирован!*\n';
-                if (promo.text_reward > 0) msg += `\n✉️ Сообщений: +${promo.text_reward}`;
-                if (promo.img_reward > 0) msg += `\n📸 Фото: +${promo.img_reward}`;
+                let msg = conversationMessages.promoActivated;
+                if (promo.text_reward > 0)
+                    msg += conversationMessages.promoTexts(promo.text_reward);
+                if (promo.img_reward > 0) msg += conversationMessages.promoImages(promo.img_reward);
                 if (promo.discount_amount > 0)
-                    msg += `\n💰 Скидка на покупку: ${promo.discount_amount} %`;
+                    msg += conversationMessages.promoDiscount(promo.discount_amount);
                 return ctx.reply(msg, { parse_mode: 'Markdown' });
             }
         }
         if (userState[userId] === 'WAITING_FOR_CUSTOM_PROMPT') {
-            const MAX_PROMPT_LENGTH = 1000;
+            const MAX_PROMPT_LENGTH = AI_LIMITS.promptCharacters;
             if (text.length > MAX_PROMPT_LENGTH) {
                 return ctx.reply(
-                    `❌ *Слишком длинный текст!*\nМаксимум ${MAX_PROMPT_LENGTH} символов (у вас ${text.length}).\n\n_Попробуйте еще раз._`,
+                    conversationMessages.promptTooLong(MAX_PROMPT_LENGTH, text.length),
                     {
                         parse_mode: 'Markdown',
                         reply_markup: {
                             inline_keyboard: [
-                                [{ text: '❌ Отмена', callback_data: 'cancel_input' }],
+                                [{ text: commonMessages.cancel, callback_data: 'cancel_input' }],
                             ],
                         },
                     },
@@ -139,49 +137,41 @@ export function registerConversation(runtime: Runtime, core: Core, admin: AdminH
             await setUserPrompt(userId, text, 'custom');
             await clearHistory(userId);
             delete userState[userId];
-            return ctx.reply(
-                `✅ Готово!\n_Свой системный промпт успешно установлен. Контекст диалога очищен._\n\n*Новый режим:*\n🔸 _Свой системный промпт_`,
-                { parse_mode: 'Markdown' },
-            );
+            return ctx.reply(conversationMessages.promptSaved, { parse_mode: 'Markdown' });
         }
-        const MAX_QUERY_LENGTH = 1000;
+        const MAX_QUERY_LENGTH = AI_LIMITS.queryCharacters;
         if (userId !== ADMIN_ID && text.length > MAX_QUERY_LENGTH) {
-            return ctx.reply(
-                `⚠️ *Ваш запрос слишком длинный!*\nПожалуйста, сократите текст до ${MAX_QUERY_LENGTH} символов (сейчас в нем ${text.length}).\n\n_Большие тексты лучше разбивать на несколько сообщений._`,
-                { parse_mode: 'Markdown' },
-            );
+            return ctx.reply(conversationMessages.queryTooLong(MAX_QUERY_LENGTH, text.length), {
+                parse_mode: 'Markdown',
+            });
         }
         const now = Date.now();
-        const cooldownMs = 5000;
+        const cooldownMs = AI_LIMITS.userCooldownMs;
         if (userId !== ADMIN_ID) {
             const userLastMsgTime = lastMessageTime[userId] || 0;
             const timePassed = now - userLastMsgTime;
             if (timePassed < cooldownMs) {
-                const secLeft = Math.ceil((cooldownMs - timePassed) / 1000);
-                return ctx.reply(
-                    `⏳ *Анти-спам:*\nПожалуйста, подождите ${secLeft} сек. перед следующим запросом.`,
-                    { parse_mode: 'Markdown' },
-                );
+                const secLeft = Math.ceil((cooldownMs - timePassed) / TIME.secondMs);
+                return ctx.reply(conversationMessages.cooldown(secLeft), {
+                    parse_mode: 'Markdown',
+                });
             }
             lastMessageTime[userId] = now;
         }
         const freeModeActive = await isFreeModeEnabled();
         if (!freeModeActive) {
             if (user.text_balance <= 0) {
-                return ctx.reply(
-                    'У вас закончились сообщения 😔\nВыберите удобный пакет в магазине 💎',
-                    {
-                        reply_markup: {
-                            inline_keyboard: [
-                                [{ text: '⭐️ Магазин', callback_data: 'trigger_buy' }],
-                            ],
-                        },
+                return ctx.reply(conversationMessages.insufficientMessages, {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: commonMessages.store, callback_data: 'trigger_buy' }],
+                        ],
                     },
-                );
+                });
             }
         }
         const shouldDecrement = !freeModeActive;
-        const tempMsg = await ctx.reply('⏳ _Печатаю ответ..._', { parse_mode: 'Markdown' });
+        const tempMsg = await ctx.reply(conversationMessages.typing, { parse_mode: 'Markdown' });
         await aiQueue.add(
             'ask-ai',
             { userId, text, chatId: chatId(ctx), shouldDecrement, tempMsgId: tempMsg.message_id },

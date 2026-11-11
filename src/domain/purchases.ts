@@ -1,3 +1,4 @@
+import { errorMessages } from '@messages/errors';
 import type { PaymentProof, PurchaseIntent } from '@contracts/purchases';
 
 export function validatePayment(intent: PurchaseIntent, proof: PaymentProof): void {
@@ -8,7 +9,7 @@ export function validatePayment(intent: PurchaseIntent, proof: PaymentProof): vo
         proof.provider !== intent.provider ||
         !proof.transactionId
     )
-        throw new Error('Payment does not match purchase');
+        throw new Error(errorMessages.paymentMismatch);
     if (intent.provider_tx_id && intent.provider_tx_id !== proof.transactionId)
-        throw new Error('Payment transaction mismatch');
+        throw new Error(errorMessages.transactionMismatch);
 }

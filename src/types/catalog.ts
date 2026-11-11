@@ -1,3 +1,3 @@
-import type { packageDefaults } from '@domain/packages';
+import type { packageDefaults } from '@constants/packages';
 
 export type PackageName = keyof typeof packageDefaults;

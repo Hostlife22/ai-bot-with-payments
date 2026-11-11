@@ -76,4 +76,72 @@ export default tseslint.config(
             ],
         },
     },
+    {
+        files: ['src/**/*.ts'],
+        ignores: ['src/constants/**', 'src/messages/**', 'src/types/**'],
+        rules: {
+            '@typescript-eslint/no-magic-numbers': [
+                'error',
+                {
+                    ignore: [-1, 0, 1],
+                    ignoreArrayIndexes: true,
+                    ignoreNumericLiteralTypes: true,
+                    ignoreTypeIndexes: true,
+                    ignoreEnums: true,
+                    ignoreReadonlyClassProperties: true,
+                    detectObjects: true,
+                    enforceConst: true,
+                },
+            ],
+            'no-restricted-syntax': [
+                'error',
+                {
+                    selector:
+                        'NewExpression[callee.name=/^(Error|ValidationError)$/] > :matches(Literal, TemplateLiteral)',
+                    message: 'Use the error message catalog instead of an inline error string.',
+                },
+                {
+                    selector:
+                        'CallExpression[callee.property.name=/^(reply|replyWithMarkdown|editMessageText|answerCbQuery)$/] > :matches(Literal, TemplateLiteral)',
+                    message: 'Use a typed message catalog instead of inline Telegram text.',
+                },
+            ],
+        },
+    },
+    {
+        files: ['src/constants/**/*.ts', 'src/messages/**/*.ts'],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: [
+                        {
+                            group: [
+                                '@app/**',
+                                '@bootstrap/**',
+                                '@telegram/**',
+                                '@admin/**',
+                                '@shop/**',
+                                '@handlers/**',
+                                '@database/**',
+                                '@providers/**',
+                                '@payments/**',
+                                '@queues/**',
+                                '**/application/**',
+                                '**/infrastructure/**',
+                                '**/presentation/**',
+                                'telegraf',
+                                'telegraf/*',
+                                'pg',
+                                'openai',
+                                'bullmq',
+                            ],
+                            message:
+                                'Constants and message catalogs must remain independent of services and adapters.',
+                        },
+                    ],
+                },
+            ],
+        },
+    },
 );

@@ -1,3 +1,5 @@
+import { commonMessages } from '@messages/common';
+import { logMessages } from '@messages/logs';
 import type { Runtime } from '@contracts/runtime';
 import { ValidationError } from '@domain/validation';
 
@@ -18,8 +20,7 @@ export function registerTelegram(runtime: Runtime): void {
             await ctx.reply(error.message).catch(() => undefined);
             return;
         }
-        console.error('Telegram update failed', { updateId: ctx.update.update_id, error });
-        if (ctx.chat)
-            await ctx.reply('❌ Произошла ошибка. Попробуйте позже.').catch(() => undefined);
+        console.error(logMessages.telegramUpdateFailed, { updateId: ctx.update.update_id, error });
+        if (ctx.chat) await ctx.reply(commonMessages.unexpectedError).catch(() => undefined);
     });
 }

@@ -11,6 +11,8 @@
         "",
         "^@bootstrap/",
         "^@config/",
+        "^@constants/",
+        "^@messages/",
         "^@contracts/",
         "^@domain/",
         "^@app/",

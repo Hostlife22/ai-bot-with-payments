@@ -1,3 +1,6 @@
+import { errorMessages } from '@messages/errors';
+import { logMessages } from '@messages/logs';
+
 export class Timers {
     private readonly handles = new Set<NodeJS.Timeout>();
     private readonly active = new Set<Promise<unknown>>();
@@ -5,13 +8,13 @@ export class Timers {
     private run(task: () => void | Promise<unknown>): Promise<unknown> {
         const promise = Promise.resolve()
             .then(task)
-            .catch((error) => console.error('Scheduled task failed', error));
+            .catch((error) => console.error(logMessages.scheduledTaskFailed, error));
         this.active.add(promise);
         void promise.finally(() => this.active.delete(promise));
         return promise;
     }
     every(task: () => void | Promise<void>, milliseconds: number): NodeJS.Timeout {
-        if (this.closed) throw new Error('Scheduler is closed');
+        if (this.closed) throw new Error(errorMessages.schedulerClosed);
         let running = false;
         const handle = setInterval(() => {
             if (running || this.closed) return;
@@ -24,7 +27,7 @@ export class Timers {
         return handle;
     }
     after(task: () => void | Promise<unknown>, milliseconds: number): NodeJS.Timeout {
-        if (this.closed) throw new Error('Scheduler is closed');
+        if (this.closed) throw new Error(errorMessages.schedulerClosed);
         const handle = setTimeout(() => {
             this.handles.delete(handle);
             if (!this.closed) void this.run(task);

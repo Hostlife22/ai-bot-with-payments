@@ -1,3 +1,4 @@
+import { SESSION_TIMING } from '@constants/time';
 import type { Sessions } from '@contracts/sessions';
 
 export function createSessions(): Sessions {
@@ -10,7 +11,11 @@ export function createSessions(): Sessions {
         touchedAt: {},
     };
 }
-export function pruneSessions(sessions: Sessions, now = Date.now(), ttl = 30 * 60000): void {
+export function pruneSessions(
+    sessions: Sessions,
+    now = Date.now(),
+    ttl: number = SESSION_TIMING.ttlMs,
+): void {
     for (const [id, touched] of Object.entries(sessions.touchedAt)) {
         if (touched === undefined || now - touched <= ttl) continue;
         delete sessions.touchedAt[id];

@@ -1,3 +1,6 @@
+import { CURRENCIES, PLATEGA } from '@constants/payments';
+import { logMessages } from '@messages/logs';
+import { paymentMessages } from '@messages/platega';
 import type { AppConfig } from '@contracts/config';
 import type { PlategaInvoice, PlategaStatus } from '@contracts/gateways';
 import type { Repository } from '@contracts/repositories';
@@ -9,7 +12,6 @@ export function createPlategaClient(
     repository: Pick<Repository, 'logPaymentFailure'>,
 ) {
     const { logPaymentFailure } = repository;
-    const API_URL = 'https://app.platega.io';
     async function createPlategaInvoice(
         amount: number,
         paymentMethod: number,
@@ -21,16 +23,16 @@ export function createPlategaClient(
                 paymentMethod: paymentMethod,
                 paymentDetails: {
                     amount: amount,
-                    currency: 'RUB',
+                    currency: CURRENCIES.rubles,
                 },
-                description: 'Оплата пакета',
-                return: 'https://t.me/evaflirt_bot',
-                failedUrl: 'https://t.me/evaflirt_bot',
+                description: paymentMessages.invoiceDescription,
+                return: PLATEGA.returnUrl,
+                failedUrl: PLATEGA.returnUrl,
                 payload: payloadStr,
             };
-            const response = await fetch(`${API_URL}/transaction/process`, {
+            const response = await fetch(`${PLATEGA.baseUrl}/transaction/process`, {
                 method: 'POST',
-                signal: AbortSignal.timeout(15000),
+                signal: AbortSignal.timeout(PLATEGA.timeoutMs),
                 headers: {
                     'X-MerchantId': config.plategaMerchantId,
                     'X-Secret': config.plategaSecret,
@@ -39,13 +41,13 @@ export function createPlategaClient(
                 body: JSON.stringify(requestBody),
             });
             if (!response.ok) {
-                await logPaymentFailure(`Platega invoice request failed: HTTP ${response.status}`);
+                await logPaymentFailure(logMessages.plategaInvoiceHttpFailure(response.status));
                 return null;
             }
             const data: unknown = await response.json();
             return parseInvoice(data);
         } catch (e) {
-            console.error('[Platega] Ошибка сети:', e);
+            console.error(logMessages.plategaNetworkFailed, e);
             return null;
         }
     }
@@ -53,10 +55,10 @@ export function createPlategaClient(
         if (!config.plategaMerchantId || !config.plategaSecret) return null;
         try {
             const response = await fetch(
-                `${API_URL}/transaction/${encodeURIComponent(transactionId)}`,
+                `${PLATEGA.baseUrl}/transaction/${encodeURIComponent(transactionId)}`,
                 {
                     method: 'GET',
-                    signal: AbortSignal.timeout(15000),
+                    signal: AbortSignal.timeout(PLATEGA.timeoutMs),
                     headers: {
                         'X-MerchantId': config.plategaMerchantId,
                         'X-Secret': config.plategaSecret,
@@ -64,13 +66,13 @@ export function createPlategaClient(
                 },
             );
             if (!response.ok) {
-                console.error(`Platega status request failed: HTTP ${response.status}`);
+                console.error(logMessages.plategaStatusHttpFailure(response.status));
                 return null;
             }
             const data: unknown = await response.json();
             return parseStatus(data);
         } catch (e) {
-            console.error('[Platega] Ошибка сети при проверке:', e);
+            console.error(logMessages.plategaStatusNetworkFailed, e);
             return null;
         }
     }

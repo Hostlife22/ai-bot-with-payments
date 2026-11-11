@@ -1,5 +1,7 @@
 import type { Pool } from 'pg';
 
+import { PAYMENT_POLLING } from '@constants/payments';
+import { errorMessages } from '@messages/errors';
 import type {
     NewPurchase,
     PaymentProof,
@@ -34,8 +36,7 @@ export function createPurchaseStore(pool: Pool): PurchaseStore {
                 'UPDATE purchase_intents SET provider_tx_id = $1 WHERE id = $2 AND provider_tx_id IS NULL',
                 [transactionId, id],
             );
-            if (result.rowCount !== 1)
-                throw new Error('Purchase transaction already bound or missing');
+            if (result.rowCount !== 1) throw new Error(errorMessages.purchaseAlreadyBound);
         },
         async find(id: string) {
             if (!/^[\da-f-]{36}$/i.test(id)) return undefined;
@@ -46,11 +47,14 @@ export function createPurchaseStore(pool: Pool): PurchaseStore {
             return result.rows[0];
         },
         async pending() {
-            const result = await pool.query<PurchaseIntent>(`WITH batch AS (
+            const result = await pool.query<PurchaseIntent>(
+                `WITH batch AS (
                 SELECT id FROM purchase_intents WHERE provider = 'platega' AND provider_tx_id IS NOT NULL
-                AND fulfilled_at IS NULL AND canceled_at IS NULL AND created_at > NOW() - INTERVAL '7 days'
-                ORDER BY checked_at NULLS FIRST, created_at LIMIT 100 FOR UPDATE SKIP LOCKED
-            ) UPDATE purchase_intents p SET checked_at = NOW() FROM batch WHERE p.id = batch.id RETURNING p.*`);
+                AND fulfilled_at IS NULL AND canceled_at IS NULL AND created_at > NOW() - $1 * INTERVAL '1 day'
+                ORDER BY checked_at NULLS FIRST, created_at LIMIT $2 FOR UPDATE SKIP LOCKED
+            ) UPDATE purchase_intents p SET checked_at = NOW() FROM batch WHERE p.id = batch.id RETURNING p.*`,
+                [PAYMENT_POLLING.lookbackDays, PAYMENT_POLLING.batchSize],
+            );
             return result.rows;
         },
         async cancel(id: string) {
@@ -65,7 +69,7 @@ export function createPurchaseStore(pool: Pool): PurchaseStore {
                     'SELECT * FROM purchase_intents WHERE id = $1 FOR UPDATE',
                     [id],
                 );
-                const intent = required(result.rows[0], 'Purchase not found');
+                const intent = required(result.rows[0], errorMessages.purchaseNotFound);
                 validatePayment(intent, proof);
                 if (intent.fulfilled_at) return false;
                 const payment = await client.query(
@@ -77,8 +81,7 @@ export function createPurchaseStore(pool: Pool): PurchaseStore {
                         `${proof.provider}:${proof.transactionId}`,
                     ],
                 );
-                if (!payment.rowCount)
-                    throw new Error('Transaction already belongs to another purchase');
+                if (!payment.rowCount) throw new Error(errorMessages.transactionAlreadyUsed);
                 await client.query(
                     'UPDATE users SET text_balance = GREATEST(text_balance,0) + $1, image_balance = GREATEST(image_balance,0) + $2, has_purchased = TRUE, current_discount = 0 WHERE telegram_id = $3',
                     [intent.text_count, intent.image_count, intent.user_id],

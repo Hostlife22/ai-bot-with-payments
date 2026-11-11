@@ -1,5 +1,11 @@
 import type { Pool } from 'pg';
 
+import { DATABASE } from '@constants/database';
+import { PERCENT } from '@constants/numbers';
+import { PROMOTIONS } from '@constants/promotions';
+import { errorMessages } from '@messages/errors';
+import { fieldNames } from '@messages/fields';
+import { logMessages } from '@messages/logs';
 import type { Promo, PromoResult } from '@contracts/promotions';
 import type { PromotionRepository } from '@contracts/repositories';
 import type { UserId } from '@contracts/user';
@@ -14,10 +20,11 @@ export function createPromotionRepository(pool: Pool): PromotionRepository {
         text_reward: number,
         img_reward: number,
         discount_amount: number,
-        max_uses_per_user = 1,
+        max_uses_per_user: number = PROMOTIONS.defaultUsesPerUser,
         is_new_users_only = false,
     ) {
-        if (!code || code.length > 255) throw new ValidationError('Invalid promocode');
+        if (!code || code.length > PROMOTIONS.maxCodeCharacters)
+            throw new ValidationError(errorMessages.invalidPromocode);
         for (const value of [
             uses_left,
             text_reward,
@@ -25,9 +32,9 @@ export function createPromotionRepository(pool: Pool): PromotionRepository {
             discount_amount,
             max_uses_per_user,
         ])
-            nonNegativeInteger(value, 'Promocode value');
-        if (discount_amount > 100 || max_uses_per_user < 1)
-            throw new ValidationError('Invalid discount or usage limit');
+            nonNegativeInteger(value, fieldNames.promocode);
+        if (discount_amount > PERCENT || max_uses_per_user < 1)
+            throw new ValidationError(errorMessages.invalidPromoLimits);
         const query = `
         INSERT INTO promocodes (code, uses_left, text_reward, img_reward, discount_amount, max_uses_per_user, max_uses_total, is_new_users_only)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -52,11 +59,11 @@ export function createPromotionRepository(pool: Pool): PromotionRepository {
         ]);
     }
     async function updatePromoField(id: number, field: string, value: string | number | boolean) {
-        const amount = nonNegativeInteger(value, 'Promocode value');
+        const amount = nonNegativeInteger(value, fieldNames.promocode);
         if (!['text', 'img', 'disc', 'uses'].includes(field))
-            throw new ValidationError('Unknown promocode field');
-        if (field === 'disc' && amount > 100)
-            throw new ValidationError('Discount must not exceed 100');
+            throw new ValidationError(errorMessages.unknownPromoField);
+        if (field === 'disc' && amount > PERCENT)
+            throw new ValidationError(errorMessages.discountTooLarge);
         if (field === 'text')
             await pool.query('UPDATE promocodes SET text_reward = $1 WHERE id = $2', [value, id]);
         if (field === 'img')
@@ -140,7 +147,7 @@ export function createPromotionRepository(pool: Pool): PromotionRepository {
             return promo;
         } catch (e) {
             await client.query('ROLLBACK');
-            console.error('Ошибка активации промокода:', e);
+            console.error(logMessages.promoActivationFailed, e);
             throw e;
         } finally {
             client.release();
@@ -148,7 +155,8 @@ export function createPromotionRepository(pool: Pool): PromotionRepository {
     }
     async function getAllPromocodes() {
         const res = await pool.query<Promo>(
-            'SELECT * FROM promocodes ORDER BY created_at DESC LIMIT 10',
+            'SELECT * FROM promocodes ORDER BY created_at DESC LIMIT $1',
+            [DATABASE.recentPromotions],
         );
         return res.rows;
     }

@@ -1,21 +1,29 @@
 import type { Telegram } from 'telegraf';
 import type { InlineKeyboardMarkup as Keyboard } from 'telegraf/types';
 
+import { TELEGRAM_LIMITS, UTF16 } from '@constants/telegram';
+import { commonMessages } from '@messages/common';
+import { deliveryMessages } from '@messages/delivery';
+import { errorMessages } from '@messages/errors';
 import type { AiResponse } from '@contracts/conversation';
 import type { AiJob } from '@contracts/jobs';
 
-export function splitText(text: string, limit = 4096): string[] {
-    if (limit < 1) throw new Error('Text limit must be positive');
+export function splitText(
+    text: string,
+    limit: number = TELEGRAM_LIMITS.messageCharacters,
+): string[] {
+    if (limit < 1) throw new Error(errorMessages.invalidTextLimit);
     const chunks: string[] = [];
     for (let offset = 0; offset < text.length;) {
         let end = Math.min(offset + limit, text.length);
         const code = text.charCodeAt(end - 1);
-        if (end < text.length && code >= 0xd800 && code <= 0xdbff) end--;
+        if (end < text.length && code >= UTF16.highSurrogateStart && code <= UTF16.highSurrogateEnd)
+            end--;
         if (end === offset) end++;
         chunks.push(text.slice(offset, end));
         offset = end;
     }
-    return chunks.length ? chunks : ['…'];
+    return chunks.length ? chunks : [deliveryMessages.emptyText];
 }
 export async function deliverResponse(
     telegram: Telegram,
@@ -23,11 +31,11 @@ export async function deliverResponse(
     response: AiResponse,
 ): Promise<void> {
     const reply_markup: Keyboard | undefined = response.showBuyButton
-        ? { inline_keyboard: [[{ text: '⭐️ Магазин', callback_data: 'trigger_buy' }]] }
+        ? { inline_keyboard: [[{ text: commonMessages.store, callback_data: 'trigger_buy' }]] }
         : undefined;
     const options = reply_markup ? { reply_markup } : {};
     if (response.photo) {
-        const caption = splitText(response.text, 1024)[0] ?? '';
+        const caption = splitText(response.text, TELEGRAM_LIMITS.captionCharacters)[0] ?? '';
         await telegram.sendPhoto(job.chatId, response.photo, { caption, ...options });
         const remainder = response.text.slice(caption.length);
         if (remainder)

@@ -1,0 +1,25 @@
+export const logMessages = {
+    aiJobFailed: 'AI job failed',
+    aiQueueFailed: 'AI queue error',
+    aiWorkerFailed: 'AI worker error',
+    applicationFailed: 'Application failed',
+    broadcastDeliveryFailed: 'Broadcast delivery failed',
+    broadcastQueueFailed: 'Broadcast queue error',
+    broadcastWorkerFailed: 'Broadcast worker error',
+    funnelFailed: '[Автоворонка] Ошибка:',
+    paymentPollingFailed: 'Payment polling failed',
+    plategaInvoiceHttpFailure: (status: number): string =>
+        `Platega invoice request failed: HTTP ${status}`,
+    plategaNetworkFailed: '[Platega] Ошибка сети:',
+    plategaStatusHttpFailure: (status: number): string =>
+        `Platega status request failed: HTTP ${status}`,
+    plategaStatusNetworkFailed: '[Platega] Ошибка сети при проверке:',
+    promoActivationFailed: 'Ошибка активации промокода:',
+    scheduledTaskFailed: 'Scheduled task failed',
+    shopPaymentSelectionFailed: '[МАГАЗИН ОШИБКА ВЫБОРА ОПЛАТЫ]:',
+    shopRenderFailed: '[МАГАЗИН ОШИБКА ОТРИСОВКИ]:',
+    shutdownFailed: 'Shutdown failed',
+    subscriptionCheckFailed: 'Ошибка проверки подписки:',
+    telegramUpdateFailed: 'Telegram update failed',
+    workerShutdownFailed: 'Worker shutdown failed',
+} as const;

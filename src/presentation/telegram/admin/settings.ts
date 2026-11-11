@@ -1,5 +1,10 @@
 import { Markup, type Context } from 'telegraf';
 
+import { PERCENT } from '@constants/numbers';
+import { UI_FORMAT } from '@constants/telegram';
+import { USER_REWARDS } from '@constants/users';
+import { adminSettingsMessages } from '@messages/admin-settings';
+import { commonMessages } from '@messages/common';
 import type { Runtime } from '@contracts/runtime';
 import { actorId } from '@telegram/context';
 
@@ -16,42 +21,53 @@ export function registerSettings(runtime: Runtime) {
         const spent = parseInt(f.spent_free) || 0;
         const opened = parseInt(f.store_opened) || 0;
         const paid = parseInt(f.paid) || 0;
-        const pSpent = Math.round((spent / total) * 100);
-        const pOpened = Math.round((opened / total) * 100);
-        const pPaid = Math.round((paid / total) * 100);
+        const pSpent = Math.round((spent / total) * PERCENT);
+        const pOpened = Math.round((opened / total) * PERCENT);
+        const pPaid = Math.round((paid / total) * PERCENT);
         const message =
-            `👑 *Панель администратора*\n\n` +
-            `📊 *Юзеры:*\n` +
-            `├ За день: ${stats.users.day}\n` +
-            `├ За неделю: ${stats.users.week}\n` +
-            `└ Всего: ${stats.users.total}\n\n` +
-            `💸 *Финансы:*\n` +
-            `├ Выручка: ${stats.revenue.rub_total || 0} RUB | ${stats.revenue.stars_total || 0} XTR\n` +
-            `└ Расход API: $${Number(stats.api_costs_time.total || 0).toFixed(4)}\n\n` +
-            `🧲 *Воронка конверсии:*\n` +
-            `1️⃣ Зашли в бота: ${total} чел.\n` +
-            `2️⃣ Потратили лимит: ${spent} чел. (${pSpent}%)\n` +
-            `3️⃣ Открыли магазин: ${opened} чел. (${pOpened}%)\n` +
-            `4️⃣ Оплатили пакет: ${paid} чел. (${pPaid}%)\n\n` +
-            `⚙️ *Режим работы:* ${freeMode ? '🟢 Free Mode (Безлимит)' : '🔴 Лимиты включены'}`;
+            adminSettingsMessages.heading +
+            adminSettingsMessages.usersHeading +
+            adminSettingsMessages.usersDay(stats.users.day) +
+            adminSettingsMessages.usersWeek(stats.users.week) +
+            adminSettingsMessages.usersTotal(stats.users.total) +
+            adminSettingsMessages.financesHeading +
+            adminSettingsMessages.revenue(
+                stats.revenue.rub_total || 0,
+                stats.revenue.stars_total || 0,
+            ) +
+            adminSettingsMessages.apiCost(
+                Number(stats.api_costs_time.total || 0).toFixed(UI_FORMAT.apiCostDecimals),
+            ) +
+            adminSettingsMessages.funnelHeading +
+            adminSettingsMessages.funnelTotal(total) +
+            adminSettingsMessages.funnelSpent(spent, pSpent) +
+            adminSettingsMessages.funnelOpened(opened, pOpened) +
+            adminSettingsMessages.funnelPaid(paid, pPaid) +
+            adminSettingsMessages.modeSummary(
+                freeMode
+                    ? adminSettingsMessages.freeModeStatus
+                    : adminSettingsMessages.limitedModeStatus,
+            );
         const keyboard = Markup.inlineKeyboard([
             [
-                Markup.button.callback('📢 Рассылка', 'start_broadcast'),
-                Markup.button.callback('🎁 Промокоды', 'admin_promo_list'),
+                Markup.button.callback(adminSettingsMessages.broadcast, 'start_broadcast'),
+                Markup.button.callback(adminSettingsMessages.promotions, 'admin_promo_list'),
             ],
             [
-                Markup.button.callback('👥 Все юзеры', 'users_page_1'),
-                Markup.button.callback('🔍 Найти по ID', 'mu_start'),
+                Markup.button.callback(adminSettingsMessages.allUsers, 'users_page_1'),
+                Markup.button.callback(adminSettingsMessages.findUser, 'mu_start'),
             ],
             [
-                Markup.button.callback('📦 Цены', 'admin_edit_pkgs'),
-                Markup.button.callback('📝 Тексты', 'edit_texts_menu'),
+                Markup.button.callback(adminSettingsMessages.prices, 'admin_edit_pkgs'),
+                Markup.button.callback(adminSettingsMessages.texts, 'edit_texts_menu'),
             ],
-            [Markup.button.callback('🔗 Ссылка на "Звезды"', 'edit_stars_url')],
-            [Markup.button.callback('🔄 Сбросить лимиты всем (Подарок)', 'reset_free_limits')],
+            [Markup.button.callback(adminSettingsMessages.starsUrl, 'edit_stars_url')],
+            [Markup.button.callback(adminSettingsMessages.resetLimits, 'reset_free_limits')],
             [
                 Markup.button.callback(
-                    freeMode ? '🔴 Включить лимиты' : '🟢 Включить Free Mode',
+                    freeMode
+                        ? adminSettingsMessages.enableLimits
+                        : adminSettingsMessages.enableFreeMode,
                     'toggle_free_mode',
                 ),
             ],
@@ -75,7 +91,11 @@ export function registerSettings(runtime: Runtime) {
         if (actorId(ctx) !== ADMIN_ID) return;
         const currentStatus = await isFreeModeEnabled();
         await toggleFreeMode(!currentStatus);
-        await ctx.answerCbQuery(`Бесплатный режим ${!currentStatus ? 'включен' : 'выключен'}`);
+        await ctx.answerCbQuery(
+            adminSettingsMessages.freeModeChanged(
+                !currentStatus ? adminSettingsMessages.enabled : adminSettingsMessages.disabled,
+            ),
+        );
         return renderAdminPanel(ctx, true);
     });
     bot.action('admin_back', async (ctx) => {
@@ -86,26 +106,32 @@ export function registerSettings(runtime: Runtime) {
         if (actorId(ctx) !== ADMIN_ID) return;
         const kb = Markup.inlineKeyboard([
             [
-                Markup.button.callback('📜 Политика', 'edit_policy'),
-                Markup.button.callback('📜 Соглашение', 'edit_agreement'),
+                Markup.button.callback(commonMessages.policy, 'edit_policy'),
+                Markup.button.callback(adminSettingsMessages.editAgreement, 'edit_agreement'),
             ],
-            [Markup.button.callback('❓ FAQ', 'edit_faq')],
-            [Markup.button.callback('🎧 Саппорт (URL)', 'edit_support')],
+            [Markup.button.callback(adminSettingsMessages.faq, 'edit_faq')],
+            [Markup.button.callback(adminSettingsMessages.supportUrl, 'edit_support')],
             [
-                Markup.button.callback('📢 Канал бонуса (ID)', 'edit_bonus_channel_id'),
-                Markup.button.callback('🔗 Ссылка бонуса', 'edit_bonus_channel_url'),
+                Markup.button.callback(
+                    adminSettingsMessages.bonusChannelId,
+                    'edit_bonus_channel_id',
+                ),
+                Markup.button.callback(
+                    adminSettingsMessages.bonusChannelUrl,
+                    'edit_bonus_channel_url',
+                ),
             ],
-            [Markup.button.callback('⬅️ Назад', 'admin_back')],
+            [Markup.button.callback(commonMessages.back, 'admin_back')],
         ]);
         const msg =
-            `📝 <b>Настройка текстов и ссылок</b>\n\n` +
-            `<i>Поддерживаются HTML-теги:</i>\n` +
-            `<code>&lt;b&gt;жирный&lt;/b&gt;</code>\n` +
-            `<code>&lt;i&gt;курсив&lt;/i&gt;</code>\n` +
-            `<code>&lt;a href="ссылка"&gt;текст&lt;/a&gt;</code>\n\n` +
-            `🔗 <b>Для канала бонуса:</b>\n` +
-            `<b>ID:</b> <code>@username</code> или <code>-100...</code> (бот должен быть админом в канале!)\n` +
-            `<b>Ссылка:</b> <code>https://t.me/...</code> для кнопки перехода.`;
+            adminSettingsMessages.textSettingsHeading +
+            adminSettingsMessages.htmlInstructions +
+            adminSettingsMessages.htmlBoldExample +
+            adminSettingsMessages.htmlItalicExample +
+            adminSettingsMessages.htmlLinkExample +
+            adminSettingsMessages.channelInstructionsHeading +
+            adminSettingsMessages.channelIdInstructions +
+            adminSettingsMessages.channelUrlInstructions;
         return ctx.editMessageText(msg, { parse_mode: 'HTML', ...kb });
     });
     const adminWaitActions = [
@@ -120,18 +146,20 @@ export function registerSettings(runtime: Runtime) {
     adminWaitActions.forEach((action) => {
         bot.action(action, async (ctx) => {
             if (actorId(ctx) !== ADMIN_ID) return;
-            userState[actorId(ctx)] = `WAITING_EDIT_${action.slice(5).toUpperCase()}`;
+            userState[actorId(ctx)] = `WAITING_EDIT_${action.slice('edit_'.length).toUpperCase()}`;
             await ctx.answerCbQuery();
-            return ctx.editMessageText('💬 Отправьте новое значение в чат:', {
+            return ctx.editMessageText(adminSettingsMessages.enterSetting, {
                 reply_markup: {
-                    inline_keyboard: [[{ text: '❌ Отмена', callback_data: 'cancel_input' }]],
+                    inline_keyboard: [
+                        [{ text: commonMessages.cancel, callback_data: 'cancel_input' }],
+                    ],
                 },
             });
         });
     });
     bot.action('cancel_input', async (ctx) => {
         delete userState[actorId(ctx)];
-        await ctx.answerCbQuery('Действие отменено');
+        await ctx.answerCbQuery(adminSettingsMessages.canceled);
         await ctx.deleteMessage().catch(() => {});
         if (actorId(ctx) === ADMIN_ID) return renderAdminPanel(ctx, false);
     });
@@ -139,65 +167,58 @@ export function registerSettings(runtime: Runtime) {
         if (actorId(ctx) !== ADMIN_ID) return;
         userState[actorId(ctx)] = 'WAITING_FOR_BROADCAST';
         await ctx.answerCbQuery();
-        return ctx.editMessageText(
-            '📢 Отправьте мне текст сообщения для массовой рассылки (поддерживается разметка Markdown):',
-            {
-                reply_markup: {
-                    inline_keyboard: [[{ text: '❌ Отмена', callback_data: 'cancel_input' }]],
-                },
+        return ctx.editMessageText(adminSettingsMessages.enterBroadcast, {
+            reply_markup: {
+                inline_keyboard: [[{ text: commonMessages.cancel, callback_data: 'cancel_input' }]],
             },
-        );
+        });
     });
     bot.action('admin_edit_pkgs', async (ctx) => {
         if (actorId(ctx) !== ADMIN_ID) return;
         const kb = Markup.inlineKeyboard([
             [
-                Markup.button.callback('💬 50 шт.', 'edit_pkg_t50'),
-                Markup.button.callback('💬 200 шт.', 'edit_pkg_t200'),
-                Markup.button.callback('💬 500 шт.', 'edit_pkg_t500'),
+                Markup.button.callback(adminSettingsMessages.text50Button, 'edit_pkg_t50'),
+                Markup.button.callback(adminSettingsMessages.text200Button, 'edit_pkg_t200'),
+                Markup.button.callback(adminSettingsMessages.text500Button, 'edit_pkg_t500'),
             ],
             [
-                Markup.button.callback('📸 5 шт.', 'edit_pkg_i5'),
-                Markup.button.callback('📸 15 шт.', 'edit_pkg_i15'),
-                Markup.button.callback('📸 50 шт.', 'edit_pkg_i50'),
+                Markup.button.callback(adminSettingsMessages.image5Button, 'edit_pkg_i5'),
+                Markup.button.callback(adminSettingsMessages.image15Button, 'edit_pkg_i15'),
+                Markup.button.callback(adminSettingsMessages.image50Button, 'edit_pkg_i50'),
             ],
             [
-                Markup.button.callback('🎁 Lite', 'edit_pkg_lite'),
-                Markup.button.callback('🎁 Medium', 'edit_pkg_medium'),
+                Markup.button.callback(commonMessages.litePackage, 'edit_pkg_lite'),
+                Markup.button.callback(commonMessages.mediumPackage, 'edit_pkg_medium'),
             ],
             [
-                Markup.button.callback('🎁 Hard', 'edit_pkg_hard'),
-                Markup.button.callback('🎁 Full', 'edit_pkg_full'),
+                Markup.button.callback(commonMessages.hardPackage, 'edit_pkg_hard'),
+                Markup.button.callback(commonMessages.fullPackage, 'edit_pkg_full'),
             ],
-            [Markup.button.callback('⬅️ Назад', 'admin_back')],
+            [Markup.button.callback(commonMessages.back, 'admin_back')],
         ]);
-        return ctx.editMessageText(
-            '📦 *Настройка цен и пакетов*\n\nВыберите пакет для изменения его стоимости и лимитов:',
-            { parse_mode: 'Markdown', reply_markup: kb.reply_markup },
-        );
+        return ctx.editMessageText(adminSettingsMessages.packageSettings, {
+            parse_mode: 'Markdown',
+            reply_markup: kb.reply_markup,
+        });
     });
     ['lite', 'medium', 'hard', 'full', 't50', 't200', 't500', 'i5', 'i15', 'i50'].forEach((pkg) => {
         bot.action(`edit_pkg_${pkg}`, async (ctx) => {
             userState[actorId(ctx)] = `WAITING_EDIT_PKG_${pkg.toUpperCase()}`;
             await ctx.answerCbQuery();
-            return ctx.editMessageText(
-                `✏️ Редактирование пакета *${pkg.toUpperCase()}*.\n\nВведите 4 числа через пробел:\n\`Звезды Рубли Тексты Фото\`\n\n_Например (35 звёзд, 50 руб, 50 текстов, 0 фото):_\n\`35 50 50 0\``,
-                {
-                    parse_mode: 'Markdown',
-                    reply_markup: {
-                        inline_keyboard: [[{ text: '❌ Отмена', callback_data: 'cancel_input' }]],
-                    },
+            return ctx.editMessageText(adminSettingsMessages.editPackage(pkg.toUpperCase()), {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: commonMessages.cancel, callback_data: 'cancel_input' }],
+                    ],
                 },
-            );
+            });
         });
     });
     bot.action('reset_free_limits', async (ctx) => {
         if (actorId(ctx) !== ADMIN_ID) return;
-        await resetAllFreeRequests(10, 1);
-        return ctx.answerCbQuery(
-            'Лимиты всем пользователям успешно сброшены до 10 текстов и 1 фото!',
-            { show_alert: true },
-        );
+        await resetAllFreeRequests(USER_REWARDS.initialTexts, USER_REWARDS.initialImages);
+        return ctx.answerCbQuery(adminSettingsMessages.limitsReset, { show_alert: true });
     });
     return { renderAdminPanel };
 }

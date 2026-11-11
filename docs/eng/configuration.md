@@ -64,19 +64,25 @@ Editing instructions and text formatting differences are in [administration](adm
 
 These are not overridden through `.env`:
 
-| Parameter                                                     | Source                                                                                |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Models, text provider, `max_tokens`, OpenRouter timeout/retry | [openrouter.ts](../../src/infrastructure/ai/openrouter.ts)                            |
-| Platega API URL and `return`/`failedUrl` links                | [platega.ts](../../src/infrastructure/payments/platega.ts)                            |
-| Initial package values                                        | [packages.ts](../../src/domain/packages.ts)                                           |
-| Roles and system prompts                                      | [roles.ts](../../src/domain/roles.ts), [prompts.ts](../../src/application/prompts.ts) |
-| AI rate limits and image-cost threshold                       | [ai.ts](../../src/application/ai.ts)                                                  |
-| Payment polling interval                                      | [polling.ts](../../src/presentation/telegram/shop/polling.ts)                         |
+| Parameter                                                     | Source                                                                             |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Models, text provider, `max_tokens`, OpenRouter timeout/retry | [ai.ts](../../src/constants/ai.ts)                                                 |
+| Platega API URL and `return`/`failedUrl` links                | [payments.ts](../../src/constants/payments.ts)                                     |
+| Initial package values                                        | [packages.ts](../../src/constants/packages.ts)                                     |
+| Roles and system prompts                                      | [roles.ts](../../src/domain/roles.ts), [prompts.ts](../../src/messages/prompts.ts) |
+| AI rate limits and image-cost threshold                       | [ai.ts](../../src/constants/ai.ts)                                                 |
+| Payment polling interval                                      | [payments.ts](../../src/constants/payments.ts)                                     |
 
-Before enabling Platega, review the return links: the adapter currently contains `https://t.me/evaflirt_bot`.
+Before enabling Platega, review the return links: `src/constants/payments.ts` currently contains `https://t.me/evaflirt_bot`.
 
 ## Starter photos
 
 `src/assets/free_pics/` is resolved from the application's working directory. Regular `.jpg`, `.jpeg`, `.png`, and `.webp` files are supported. Supply images with suitable usage rights.
 
 Docker copies photos into the image; rebuild after adding files. No host-directory volume is configured. If no local photo is available, the bot reports unavailability and refunds the photo reservation.
+
+## Constants and messages
+
+Use `@constants/*` for policy and runtime values, and `@messages/*` for text. Shared buttons live in `messages/common.ts`; errors and logs have separate catalogs. Keep dynamic text in typed formatter functions, and derive displayed limits and rewards from the same constants used by services. ESLint rejects magic numbers and inline error/Telegram reply strings in implementation modules; zero, one, array indexes and type literals retain their structural meaning.
+
+Rebuild after editing constants. Stored `pkg_*` settings override `DEFAULT_PACKAGES`; update existing prices and quantities through the administrator panel.

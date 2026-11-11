@@ -1,3 +1,8 @@
+import { CATALOG } from '@constants/catalog';
+import { PROMOTIONS } from '@constants/promotions';
+import { adminInputMessages } from '@messages/admin-input';
+import { commonMessages } from '@messages/common';
+import { fieldNames } from '@messages/fields';
 import type { Runtime } from '@contracts/runtime';
 import type { AdminHandlers } from '@contracts/telegram';
 import { nonNegativeInteger, required } from '@domain/validation';
@@ -24,9 +29,8 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
         const text = ctx.message.text;
         if (userId === ADMIN_ID) {
             if (userState[userId] === 'WAITING_MU_ID') {
-                const targetId = nonNegativeInteger(text.trim(), 'Значение');
-                if (isNaN(targetId))
-                    return ctx.reply('❌ Ошибка: нужно отправить только ID (цифры).');
+                const targetId = nonNegativeInteger(text.trim(), fieldNames.value);
+                if (isNaN(targetId)) return ctx.reply(adminInputMessages.invalidUserId);
                 adminTargetUser[userId] = targetId;
                 delete userState[userId];
                 await ctx.deleteMessage().catch(() => {});
@@ -35,21 +39,21 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
             const targetId = adminTargetUser[userId];
             if (targetId) {
                 if (userState[userId] === 'WAITING_MU_TEXT') {
-                    const count = nonNegativeInteger(text.trim(), 'Значение');
+                    const count = nonNegativeInteger(text.trim(), fieldNames.value);
                     if (isNaN(count) || count < 0)
-                        return ctx.reply('❌ Введите положительное число.');
+                        return ctx.reply(adminInputMessages.positiveNumberRequired);
                     await adminSetTextBalance(targetId, count);
                     delete userState[userId];
-                    await ctx.reply('✅ Количество запросов изменено!');
+                    await ctx.reply(adminInputMessages.textBalanceUpdated);
                     return renderUserManagePanel(ctx, targetId);
                 }
                 if (userState[userId] === 'WAITING_MU_IMG') {
-                    const count = nonNegativeInteger(text.trim(), 'Значение');
+                    const count = nonNegativeInteger(text.trim(), fieldNames.value);
                     if (isNaN(count) || count < 0)
-                        return ctx.reply('❌ Введите положительное число.');
+                        return ctx.reply(adminInputMessages.positiveNumberRequired);
                     await adminSetImageBalance(targetId, count);
                     delete userState[userId];
-                    await ctx.reply('✅ Количество фото изменено!');
+                    await ctx.reply(adminInputMessages.imageBalanceUpdated);
                     return renderUserManagePanel(ctx, targetId);
                 }
                 if (userState[userId] === 'WAITING_MU_MSG') {
@@ -57,14 +61,12 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
                     try {
                         await bot.telegram.sendMessage(
                             targetId,
-                            `💬 <b>Сообщение от администрации:</b>\n\n${text}`,
+                            adminInputMessages.adminMessage(text),
                             { parse_mode: 'HTML' },
                         );
-                        await ctx.reply('✅ Сообщение успешно доставлено пользователю!');
+                        await ctx.reply(adminInputMessages.messageDelivered);
                     } catch (e) {
-                        await ctx.reply(
-                            '❌ Ошибка доставки (возможно, пользователь заблокировал бота).',
-                        );
+                        await ctx.reply(adminInputMessages.deliveryFailed);
                     }
                     return renderUserManagePanel(ctx, targetId);
                 }
@@ -77,15 +79,13 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
         ) {
             const pkgType = userState[userId].replace('WAITING_EDIT_PKG_', '').toLowerCase();
             const parts = text.trim().split(/\s+/);
-            if (parts.length !== 4 || parts.some((p) => Number.isNaN(Number(p)))) {
-                return ctx.reply(
-                    '❌ Ошибка! Введите ровно 4 числа через пробел (Звезды Рубли Сообщения Фото).\nПример: 25 35 50 5',
-                );
+            if (parts.length !== CATALOG.fields || parts.some((p) => Number.isNaN(Number(p)))) {
+                return ctx.reply(adminInputMessages.invalidPackage);
             }
             parsePackage(parts.join('_'));
             await setSetting(`pkg_${pkgType}`, `${parts[0]}_${parts[1]}_${parts[2]}_${parts[3]}`);
             delete userState[userId];
-            await ctx.reply(`✅ Настройки пакета ${pkgType.toUpperCase()} успешно обновлены!`);
+            await ctx.reply(adminInputMessages.packageUpdated(pkgType.toUpperCase()));
             return renderAdminPanel(ctx, false);
         }
         const adminStates: Record<string, string> = {
@@ -112,24 +112,24 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
                     'bonus_channel_url',
                 ].includes(settingKey)
             ) {
-                const num = nonNegativeInteger(text.trim(), 'Значение');
-                if (isNaN(num) || num < 1) return ctx.reply('❌ Ошибка: введите число.');
+                const num = nonNegativeInteger(text.trim(), fieldNames.value);
+                if (isNaN(num) || num < 1) return ctx.reply(adminInputMessages.numberRequired);
                 await setSetting(settingKey, num);
             } else {
                 await setSetting(settingKey, text.trim());
             }
             delete userState[userId];
-            await ctx.reply(`✅ Сохранено!`, { parse_mode: 'Markdown' });
+            await ctx.reply(adminInputMessages.saved, { parse_mode: 'Markdown' });
             return renderAdminPanel(ctx, false);
         }
         if (userId === ADMIN_ID && userState[userId] === 'WAITING_NEW_PROMO_CODE') {
             const code = text.trim().replace(/\s+/g, '_').toUpperCase();
             adminPromoDraft[userId] = {
                 code: code,
-                uses: 100,
-                textReward: 10,
-                imgReward: 1,
-                discount: 0,
+                uses: PROMOTIONS.defaultUses,
+                textReward: PROMOTIONS.defaultTextReward,
+                imgReward: PROMOTIONS.defaultImageReward,
+                discount: PROMOTIONS.defaultDiscount,
                 newOnly: false,
             };
             delete userState[userId];
@@ -142,10 +142,10 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
             userState[userId].startsWith('WAITING_PDRAFT_')
         ) {
             const field = userState[userId].replace('WAITING_PDRAFT_', '').toLowerCase();
-            const num = nonNegativeInteger(text.trim(), 'Значение');
-            if (isNaN(num) || num < 0) return ctx.reply('❌ Введите положительное число.');
+            const num = nonNegativeInteger(text.trim(), fieldNames.value);
+            if (isNaN(num) || num < 0) return ctx.reply(adminInputMessages.positiveNumberRequired);
             const draft = adminPromoDraft[userId];
-            if (!draft) return ctx.reply('Черновик не найден.');
+            if (!draft) return ctx.reply(adminInputMessages.missingDraft);
             if (field === 'uses') draft.uses = num;
             else if (field === 'text') draft.textReward = num;
             else if (field === 'img') draft.imgReward = num;
@@ -164,14 +164,14 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
             const parts = userState[userId].split('_');
             const field = required(parts[2]).toLowerCase();
             const id = Number(parts[3]);
-            const num = nonNegativeInteger(text.trim(), 'Значение');
-            if (isNaN(num) || num < 0) return ctx.reply('❌ Введите положительное число.');
+            const num = nonNegativeInteger(text.trim(), fieldNames.value);
+            if (isNaN(num) || num < 0) return ctx.reply(adminInputMessages.positiveNumberRequired);
             await updatePromoField(id, field, num);
             delete userState[userId];
-            return ctx.reply('✅ Параметр успешно обновлен в базе!', {
+            return ctx.reply(adminInputMessages.promoUpdated, {
                 reply_markup: {
                     inline_keyboard: [
-                        [{ text: 'Вернуться к промокоду', callback_data: `p_manage_${id}` }],
+                        [{ text: adminInputMessages.backToPromo, callback_data: `p_manage_${id}` }],
                     ],
                 },
             });
@@ -179,20 +179,23 @@ export function registerAdminInput(runtime: Runtime, admin: AdminHandlers) {
         if (userId === ADMIN_ID && userState[userId] === 'WAITING_FOR_BROADCAST') {
             userState[userId] = 'WAITING_FOR_BROADCAST_BTN';
             adminBroadcastMsg[userId] = { type: 'text', text: text, btn: 'none' };
-            return ctx.reply(`Хотите добавить кнопку к рассылке? Выберите из меню ниже:`, {
+            return ctx.reply(adminInputMessages.broadcastButtonPrompt, {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: '👤 Профиль', callback_data: 'broadcast_btn_profile' },
-                            { text: '🧠 Настройка ИИ', callback_data: 'broadcast_btn_ai' },
+                            {
+                                text: commonMessages.profile,
+                                callback_data: 'broadcast_btn_profile',
+                            },
+                            { text: commonMessages.aiSettings, callback_data: 'broadcast_btn_ai' },
                         ],
                         [
-                            { text: '👥 Рефералы', callback_data: 'broadcast_btn_refs' },
-                            { text: '🆘 Помощь', callback_data: 'broadcast_btn_help' },
+                            { text: commonMessages.referrals, callback_data: 'broadcast_btn_refs' },
+                            { text: commonMessages.help, callback_data: 'broadcast_btn_help' },
                         ],
-                        [{ text: '⭐️ Магазин', callback_data: 'broadcast_btn_store' }],
-                        [{ text: 'Без кнопки', callback_data: 'broadcast_btn_none' }],
-                        [{ text: '❌ Отмена', callback_data: 'cancel_input' }],
+                        [{ text: commonMessages.store, callback_data: 'broadcast_btn_store' }],
+                        [{ text: commonMessages.noButton, callback_data: 'broadcast_btn_none' }],
+                        [{ text: commonMessages.cancel, callback_data: 'cancel_input' }],
                     ],
                 },
             });

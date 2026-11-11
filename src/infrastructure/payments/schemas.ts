@@ -1,15 +1,17 @@
+import { errorMessages } from '@messages/errors';
 import type { PlategaInvoice, PlategaStatus } from '@contracts/gateways';
 import { record } from '@domain/validation';
 
 export function parseInvoice(value: unknown): PlategaInvoice {
     const data = record(value);
     if (typeof data.transactionId !== 'string' || !data.transactionId)
-        throw new Error('Invalid Platega transaction ID');
+        throw new Error(errorMessages.invalidPlategaTransactionId);
     const invoice: PlategaInvoice = { transactionId: data.transactionId };
     for (const key of ['redirect', 'url', 'paymentUrl'] as const) {
         const url = data[key];
         if (typeof url === 'string') {
-            if (new URL(url).protocol !== 'https:') throw new Error('Payment URL must use HTTPS');
+            if (new URL(url).protocol !== 'https:')
+                throw new Error(errorMessages.paymentUrlMustUseHttps);
             invoice[key] = url;
         }
     }
@@ -24,7 +26,7 @@ export function parseStatus(value: unknown): PlategaStatus {
         typeof details.amount !== 'number' ||
         typeof details.currency !== 'string'
     )
-        throw new Error('Invalid Platega status response');
+        throw new Error(errorMessages.invalidPlategaStatus);
     return {
         status: data.status,
         payload: data.payload,

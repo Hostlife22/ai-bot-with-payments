@@ -8,16 +8,18 @@ One Node.js process hosts Telegram polling, two BullMQ workers, and schedulers. 
 
 ## Module boundaries
 
-| Location                     | Responsibility                                                             |
-| ---------------------------- | -------------------------------------------------------------------------- |
-| `src/main.ts`                | Load configuration, start the application, report startup failure.         |
-| `src/bootstrap/`             | Compose adapters, register handlers, manage resources.                     |
-| `src/config/`                | Validate the environment before services start.                            |
-| `src/types/`                 | Models and contracts for repositories, services, and handler dependencies. |
-| `src/domain/`                | Payment validation, input validation, roles, default packages.             |
-| `src/application/`           | AI use cases, catalog, payments, sessions, timers.                         |
-| `src/infrastructure/`        | PostgreSQL, Redis/BullMQ, OpenRouter, Platega, local photos.               |
-| `src/presentation/telegram/` | Middleware, menus, delivery, shop, administrator interface.                |
+| Location                     | Responsibility                                                              |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| `src/main.ts`                | Load configuration, start the application, report startup failure.          |
+| `src/bootstrap/`             | Compose adapters, register handlers, manage resources.                      |
+| `src/config/`                | Validate the environment before services start.                             |
+| `src/constants/`             | Named limits, timeouts, rewards, package defaults and provider settings.    |
+| `src/messages/`              | User-facing text, typed formatters, error/log messages, prompts and themes. |
+| `src/types/`                 | Models and contracts for repositories, services, and handler dependencies.  |
+| `src/domain/`                | Payment validation, input validation, roles.                                |
+| `src/application/`           | AI use cases, catalog, payments, sessions, timers.                          |
+| `src/infrastructure/`        | PostgreSQL, Redis/BullMQ, OpenRouter, Platega, local photos.                |
+| `src/presentation/telegram/` | Middleware, menus, delivery, shop, administrator interface.                 |
 
 Domain and application modules depend on contracts; adapters implement them. Factories receive dependencies, and [bootstrap/runtime.ts](../../src/bootstrap/runtime.ts) wires concrete implementations. Importing modules does not start the application; connections are created when their factories run.
 
@@ -42,7 +44,7 @@ The handler limits ordinary user requests to 1000 characters and a five-second i
 
 The worker validates `AiJob`, atomically reserves a message when `shouldDecrement` is enabled, and refunds it for `chargeText !== true` or a handled failure. The AI service separately applies a local 10-request minute window and reserves photos.
 
-The last 10 stored messages are sent to the model. Responses are delivered after generation, without streaming. Text is split at 4096 characters and photo captions at 1024. Model parameters belong to the OpenRouter adapter.
+The last 10 stored messages are sent to the model. Responses are delivered after generation, without streaming. Text is split at 4096 characters and photo captions at 1024. Model parameters are defined in `src/constants/ai.ts` and consumed by the OpenRouter adapter.
 
 ## Persistence
 
@@ -81,3 +83,7 @@ Startup validates configuration, creates the pool, applies migrations in a trans
 On `SIGINT`/`SIGTERM`, polling stops; timers and active scheduled work are awaited; current Telegram updates are awaited; workers, queues, and the pool close. Repeated shutdown requests share one completion Promise.
 
 Atomic balances prevent concurrent overspending, but external AI requests are not exactly-once. There is no separate crash-recovery ledger for reservations. Sessions and local limits are not shared across processes. See [operations](operations.md).
+
+## Constants and messages
+
+Use `@constants/*` for policy and runtime values, and `@messages/*` for text. Shared buttons live in `messages/common.ts`; errors and logs have separate catalogs. Keep dynamic text in typed formatter functions, and derive displayed limits and rewards from the same constants used by services. ESLint rejects magic numbers and inline error/Telegram reply strings in implementation modules; zero, one, array indexes and type literals retain their structural meaning.

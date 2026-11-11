@@ -30,7 +30,9 @@
             "@telegram/*": ["./src/presentation/telegram/*.js"],
             "@contracts/*": ["./src/types/*.js"],
             "@bootstrap/*": ["./src/bootstrap/*.js"],
-            "@shop/*": ["./src/presentation/telegram/shop/*.js"]
+            "@shop/*": ["./src/presentation/telegram/shop/*.js"],
+            "@constants/*": ["./src/constants/*.js"],
+            "@messages/*": ["./src/messages/*.js"]
         },
         "noEmit": true,
         "types": ["node"]

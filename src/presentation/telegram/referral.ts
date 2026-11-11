@@ -1,5 +1,6 @@
 import type { Context } from 'telegraf';
 
+import { referralMessages } from '@messages/referral';
 import type { Repository } from '@contracts/repositories';
 
 export async function processReferral(
@@ -22,10 +23,7 @@ export async function processReferral(
     const awarded = await repository.registerReferral(userId, referrerId);
     if (awarded && referrerId !== null) {
         await ctx.telegram
-            .sendMessage(
-                referrerId,
-                '🎉 По вашей ссылке зарегистрировался новый пользователь! Вам начислено +10 сообщений.',
-            )
+            .sendMessage(referrerId, referralMessages.registered)
             .catch(() => undefined);
     }
 }

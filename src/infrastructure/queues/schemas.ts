@@ -1,3 +1,4 @@
+import { errorMessages } from '@messages/errors';
 import type { AiJob } from '@contracts/jobs';
 import { record } from '@domain/validation';
 
@@ -15,7 +16,7 @@ export function parseAiJob(value: unknown): AiJob {
         !Number.isSafeInteger(data.chatId) ||
         typeof data.shouldDecrement !== 'boolean'
     )
-        throw new Error('Invalid AI queue payload');
+        throw new Error(errorMessages.invalidAiJob);
     const job: AiJob = {
         userId,
         text: data.text,
@@ -28,7 +29,7 @@ export function parseAiJob(value: unknown): AiJob {
             !Number.isSafeInteger(data.tempMsgId) ||
             data.tempMsgId <= 0
         )
-            throw new Error('Invalid temporary message ID');
+            throw new Error(errorMessages.invalidTemporaryMessageId);
         job.tempMsgId = data.tempMsgId;
     }
     return job;

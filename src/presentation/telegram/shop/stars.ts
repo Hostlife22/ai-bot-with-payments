@@ -1,7 +1,10 @@
+import { CURRENCIES } from '@constants/payments';
+import { errorMessages } from '@messages/errors';
+import { promptTemplates } from '@messages/prompts';
+import { starsMessages } from '@messages/stars';
 import type { StarsShopDependencies } from '@contracts/shop';
 import { validatePayment } from '@domain/purchases';
 import { required } from '@domain/validation';
-import { promptTemplates } from '@app/prompts';
 
 export function registerStarsShop(runtime: StarsShopDependencies) {
     const { bot, repository, payments } = runtime;
@@ -11,12 +14,12 @@ export function registerStarsShop(runtime: StarsShopDependencies) {
         const user = await repository.requireUser(ctx.from.id);
         const intent = await payments.create(ctx.from.id, name, 'stars', user.current_discount);
         await ctx.replyWithInvoice({
-            title: `Пакет ${name.toUpperCase()}`,
-            description: `${intent.text_count} сообщений и ${intent.image_count} фото.`,
+            title: starsMessages.invoiceTitle(name.toUpperCase()),
+            description: starsMessages.invoiceDescription(intent.text_count, intent.image_count),
             payload: `purchase:${intent.id}`,
             provider_token: '',
-            currency: 'XTR',
-            prices: [{ label: 'Цена', amount: intent.amount }],
+            currency: CURRENCIES.stars,
+            prices: [{ label: starsMessages.price, amount: intent.amount }],
         });
     });
     bot.on('pre_checkout_query', async (ctx) => {
@@ -31,13 +34,10 @@ export function registerStarsShop(runtime: StarsShopDependencies) {
                 provider: 'stars',
                 transactionId: query.id,
             });
-            if (intent.fulfilled_at) throw new Error('Already paid');
+            if (intent.fulfilled_at) throw new Error(errorMessages.alreadyPaid);
             await ctx.answerPreCheckoutQuery(true);
         } catch {
-            await ctx.answerPreCheckoutQuery(
-                false,
-                'Счёт недействителен. Создайте новый счёт в магазине.',
-            );
+            await ctx.answerPreCheckoutQuery(false, starsMessages.invalidInvoice);
         }
     });
     bot.on('successful_payment', async (ctx) => {
@@ -58,7 +58,7 @@ export function registerStarsShop(runtime: StarsShopDependencies) {
                     required(promptTemplates.prompt_default),
                     'default',
                 );
-            await ctx.reply('🎉 Оплата прошла успешно! Пакет активирован.');
+            await ctx.reply(starsMessages.paid);
         }
     });
 }

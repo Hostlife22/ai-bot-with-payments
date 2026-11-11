@@ -6,6 +6,8 @@ Significant changes are recorded here. Add entries to `Unreleased`; assign a ver
 
 ## [Unreleased]
 
+- Named configuration constants, shared message/error catalogs and typed text formatters; parameterized SQL windows and limits, configurable package labels, and lint rules against inline messages and magic numbers.
+
 ## [1.0.0] - 2026-11-11
 
 ### Added

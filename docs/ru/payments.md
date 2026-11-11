@@ -8,7 +8,7 @@
 
 ## Пакеты
 
-Исходные значения из [packages.ts](../../src/domain/packages.ts):
+Исходные значения из [packages.ts](../../src/constants/packages.ts):
 
 | Пакет    | Stars | RUB | Сообщения | Фото |
 | -------- | ----: | --: | --------: | ---: |
