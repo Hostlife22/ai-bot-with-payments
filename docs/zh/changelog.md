@@ -6,8 +6,11 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-11
+
 ### 新增
 
+- Dependabot 更新分组、Issue 表单、CI、CodeQL、Docker 发布、草稿发布归档以及三语言 GitHub Pages 文档网站。
 - 源码与测试的严格 TypeScript 检查，以及独立生产构建配置。
 - 按主题拆分的 `src/types/` 契约、短模块别名和 Node.js 兼容转换。
 - 依赖工厂、独立启动/停止模块和会话清理。

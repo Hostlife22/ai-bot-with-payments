@@ -58,3 +58,5 @@ A PR description should include the problem and resulting behavior, related Issu
 Update affected documentation and the `Unreleased` section of [CHANGELOG.md](CHANGELOG.md). Keep English, Russian, and Simplified Chinese guides aligned, including commands and operational limits. Do not commit `dist/`, `.env`, dumps, backups, or user logs.
 
 Contributions use the project's [MIT license](LICENSE). Added third-party code must retain its notices and compatible distribution terms.
+
+- [GitHub automation and documentation website checks](docs/eng/ci-cd.md)

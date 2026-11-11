@@ -20,5 +20,13 @@
         "^\\.\\./",
         "^\\./"
     ],
-    "importOrderTypeScriptVersion": "5.9.3"
+    "importOrderTypeScriptVersion": "5.9.3",
+    "overrides": [
+        {
+            "files": ["*.yml", "*.yaml"],
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ]
 }

@@ -1,0 +1,36 @@
+name: Architecture or breaking-change proposal
+description: Discuss changes to contracts, payments, storage, or deployment before implementation.
+title: 'rfc: '
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and evidence
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed design
+      description: Describe affected contracts, behavior, transaction boundaries, and failure handling.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: true
+  - type: textarea
+    id: migration
+    attributes:
+      label: Migration and rollback plan
+      description: Include existing user balances, pending invoices, schema compatibility, and release notes.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation strategy
+    validations:
+      required: true

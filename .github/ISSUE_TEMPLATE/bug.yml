@@ -1,0 +1,66 @@
+name: Bug report
+description: Report unexpected bot, payment, queue, or deployment behavior.
+title: 'fix: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For vulnerabilities, follow [SECURITY.md](https://github.com/Hostlife22/ai-bot-with-payments/blob/HEAD/SECURITY.md).
+        Remove tokens, payment secrets, personal IDs, and private conversations from examples.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Use a development bot and synthetic data; include the command or menu path.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        [
+          'Telegram interface',
+          'AI and images',
+          'Payments and balances',
+          'Database or queues',
+          'Docker or deployment',
+          'Documentation or CI',
+          'Other',
+        ]
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Commit/version, operating system, Node.js, PostgreSQL/Redis versions, Docker or local execution.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked existing issues.
+          required: true
+        - label: I removed credentials and private user/payment data.
+          required: true

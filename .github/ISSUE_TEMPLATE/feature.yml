@@ -1,0 +1,27 @@
+name: Feature request
+description: Propose an improvement to the bot or its tooling.
+title: 'feat: '
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Include a menu flow, example, or expected API/contract shape where relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and workarounds
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and data impact
+      description: Explain any changes to balances, purchase snapshots, database schema, or existing menus. Use an RFC for breaking changes.

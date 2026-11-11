@@ -1,0 +1,23 @@
+name: Accessibility issue
+description: Report a navigation, labeling, readability, or assistive-technology problem.
+title: 'a11y: '
+body:
+  - type: textarea
+    id: location
+    attributes:
+      label: Affected menu or documentation page
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Client and assistive technology
+      description: Telegram client or browser, operating system, keyboard or screen reader/version. Medical information is not needed.
+    validations:
+      required: true

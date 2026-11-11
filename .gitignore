@@ -6,3 +6,10 @@ coverage/
 !.env.example
 *.log
 .DS_Store
+
+.docs-site/
+.release/
+.vitepress/cache/
+.vitepress/dist/
+playwright-report/
+test-results/

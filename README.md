@@ -2,6 +2,8 @@
 
 **English** · [Русский](README.ru.md) · [简体中文](README.zh-CN.md)
 
+[Documentation](https://hostlife22.github.io/ai-bot-with-payments/)
+
 A TypeScript Telegram bot with OpenRouter conversations, PostgreSQL storage, BullMQ/Redis queues, and message/photo packages paid through Telegram Stars or Platega.
 
 ## Features
@@ -84,3 +86,5 @@ Full guides: [English](docs/eng/architecture.md), [Русский](docs/ru/archi
 ## License
 
 Project code is licensed under [MIT](LICENSE). Dependencies retain their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The project license does not automatically cover uploaded photos or external API output.
+
+- [GitHub automation, documentation website and releases](docs/eng/ci-cd.md)

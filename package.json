@@ -27,19 +27,24 @@
     },
     "scripts": {
         "build": "npm run clean && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json --resolve-full-paths --resolve-full-extension .js",
-        "typecheck": "tsc --noEmit",
+        "typecheck": "tsc --noEmit && tsc -p tsconfig.site.json",
         "dev": "node --env-file=.env --import tsx src/main.ts",
         "start": "node --dns-result-order=ipv4first dist/main.js",
         "lint": "eslint src tests",
         "test": "node --import tsx --test tests/*.test.ts",
         "check": "npm run format:check && npm run docs:check && npm run typecheck && npm run lint && npm test && npm run build",
-        "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" eslint.config.js \"scripts/**/*.mjs\"",
-        "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" eslint.config.js \"scripts/**/*.mjs\"",
+        "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" eslint.config.js \"scripts/**/*.mjs\" \".vitepress/**/*.mts\" \".github/**/*.yml\"",
+        "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"*.json\" eslint.config.js \"scripts/**/*.mjs\" \".vitepress/**/*.mts\" \".github/**/*.yml\"",
         "clean": "node --input-type=module -e \"import { rm } from 'node:fs/promises'; await rm('dist', { recursive: true, force: true });\"",
         "docs:notices": "node scripts/generate-third-party-notices.mjs",
         "docs:format": "prettier --write README.md README.ru.md README.zh-CN.md CONTRIBUTING.md SECURITY.md ACCESSIBILITY.md CHANGELOG.md \"docs/**/*.md\"",
         "docs:check": "prettier --check README.md README.ru.md README.zh-CN.md CONTRIBUTING.md SECURITY.md ACCESSIBILITY.md CHANGELOG.md \"docs/**/*.md\" && npm run docs:links",
-        "docs:links": "node scripts/check-doc-links.mjs"
+        "docs:links": "node scripts/check-doc-links.mjs",
+        "docs:prepare": "node scripts/prepare-docs.mjs",
+        "docs:build": "npm run docs:prepare && vitepress build .docs-site",
+        "docs:preview": "vitepress preview .docs-site --host 127.0.0.1",
+        "docs:test": "node scripts/check-docs-site.mjs",
+        "release:prepare": "node scripts/prepare-release.mjs"
     },
     "dependencies": {
         "bullmq": "^5.81.5",
@@ -49,6 +54,7 @@
     },
     "devDependencies": {
         "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
+        "@playwright/test": "^1.65.0",
         "@types/node": "^22.20.5",
         "@types/pg": "^8.23.1",
         "eslint": "^10.5.0",
@@ -56,6 +62,15 @@
         "tsc-alias": "^1.9.10",
         "tsx": "^4.23.15",
         "typescript": "^5.9.3",
-        "typescript-eslint": "^8.72.2"
+        "typescript-eslint": "^8.72.2",
+        "vitepress": "^1.6.4",
+        "vitepress-plugin-mermaid": "^2.0.17",
+        "mermaid": "^11.12.0"
+    },
+    "overrides": {
+        "vitepress": {
+            "vite": "^6.4.4"
+        },
+        "minimatch": "^11.0.1"
     }
 }

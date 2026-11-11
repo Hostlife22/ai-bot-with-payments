@@ -4,7 +4,7 @@
 
 ## Scope
 
-The project interface consists of Telegram messages, inline buttons, and reply keyboards. Rendering, scaling, keyboard navigation, and assistive-technology interaction depend on the Telegram client and device. There is no standalone web interface.
+The project interface consists of Telegram messages, inline buttons, and reply keyboards. Rendering, scaling, keyboard navigation, and assistive-technology interaction depend on the Telegram client and device. The bot has no standalone application web interface.
 
 This document describes current behavior and checks for interface changes. Manual screen-reader results and a formal standards assessment have not been published.
 
@@ -45,3 +45,7 @@ Use short action labels, explicit error explanations, and captions for meaningfu
 Create an [Issue](https://github.com/Hostlife22/ai-bot-with-payments/issues) describing the menu/action, Telegram client, operating system, navigation method, expected/actual behavior, and screen reader/version when relevant. Sanitized screenshots or recordings can help.
 
 Medical information, credentials, payment data, and real conversations are not needed. If the issue also exposes a vulnerability or another user's information, use the private process in [SECURITY.md](SECURITY.md).
+
+## Documentation website
+
+The documentation uses the standard VitePress theme with language navigation, local search and a mobile menu. Chromium checks cover navigation and layout; they do not replace manual keyboard and screen-reader testing or establish WCAG conformance.

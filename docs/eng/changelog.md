@@ -6,8 +6,11 @@ Significant changes are recorded here. Add entries to `Unreleased`; assign a ver
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-11
+
 ### Added
 
+- Dependabot groups, GitHub issue forms, CI, CodeQL, Docker publication, draft release archives and a three-language GitHub Pages documentation site.
 - Strict TypeScript for source/tests and a separate production build configuration.
 - Focused `src/types/` contracts, short module aliases, and Node.js-compatible alias rewriting.
 - Dependency factories, separate startup/shutdown modules, and session cleanup.

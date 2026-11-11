@@ -1,0 +1,5 @@
+{
+    "extends": "./tsconfig.json",
+    "include": [".vitepress/**/*.mts"],
+    "exclude": ["node_modules", "dist", ".docs-site", ".release"]
+}

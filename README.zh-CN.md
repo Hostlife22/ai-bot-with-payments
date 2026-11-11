@@ -2,6 +2,8 @@
 
 [English](README.md) · [Русский](README.ru.md) · **简体中文**
 
+[文档](https://hostlife22.github.io/ai-bot-with-payments/zh/)
+
 基于 TypeScript 的 Telegram AI 机器人，使用 OpenRouter、PostgreSQL 和 BullMQ/Redis，支持通过 Telegram Stars 与 Platega 购买消息和图片套餐。
 
 ## 功能
@@ -84,3 +86,5 @@ node --env-file=.env --dns-result-order=ipv4first dist/main.js
 ## 许可证
 
 项目代码采用 [MIT](LICENSE)。依赖保留各自的许可条件，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。项目许可证不会自动覆盖上传的图片或外部 API 生成的内容。
+
+- [GitHub 自动化、文档网站和发布](docs/zh/ci-cd.md)
