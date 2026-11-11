@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "rootDir": ".",
+        "outDir": "dist",
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "noImplicitOverride": true,
+        "noFallthroughCasesInSwitch": true,
+        "useUnknownInCatchVariables": true,
+        "verbatimModuleSyntax": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "paths": {
+            "@config/*": ["./src/config/*.js"],
+            "@domain/*": ["./src/domain/*.js"],
+            "@app/*": ["./src/application/*.js"],
+            "@database/*": ["./src/infrastructure/database/*.js"],
+            "@providers/*": ["./src/infrastructure/ai/*.js"],
+            "@payments/*": ["./src/infrastructure/payments/*.js"],
+            "@queues/*": ["./src/infrastructure/queues/*.js"],
+            "@admin/*": ["./src/presentation/telegram/admin/*.js"],
+            "@handlers/*": ["./src/presentation/telegram/handlers/*.js"],
+            "@telegram/*": ["./src/presentation/telegram/*.js"],
+            "@contracts/*": ["./src/types/*.js"],
+            "@bootstrap/*": ["./src/bootstrap/*.js"],
+            "@shop/*": ["./src/presentation/telegram/shop/*.js"]
+        },
+        "noEmit": true,
+        "types": ["node"]
+    },
+    "include": ["src/**/*.ts", "tests/**/*.ts"]
+}

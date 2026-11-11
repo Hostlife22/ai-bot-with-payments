@@ -1,0 +1,61 @@
+CREATE TABLE IF NOT EXISTS promocodes (
+            id SERIAL PRIMARY KEY,
+            code VARCHAR(255) UNIQUE NOT NULL,
+            uses_left INT DEFAULT 1,
+            text_reward INT DEFAULT 0,
+            img_reward INT DEFAULT 0,
+            discount_amount INT DEFAULT 0,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+
+CREATE TABLE IF NOT EXISTS user_promocodes (
+            id SERIAL PRIMARY KEY,
+            user_id BIGINT NOT NULL,
+            promo_id INT NOT NULL,
+            uses_count INT DEFAULT 0,
+            UNIQUE(user_id, promo_id)
+        );
+
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS cost NUMERIC DEFAULT 0;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS text_balance INT DEFAULT 10;
+
+ALTER TABLE users ALTER COLUMN text_balance SET DEFAULT 10;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS image_balance INT DEFAULT 1;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS has_purchased BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(255);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(255);
+
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS tx_id VARCHAR(255) UNIQUE;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS current_discount INT DEFAULT 0;
+
+ALTER TABLE promocodes ADD COLUMN IF NOT EXISTS max_uses_total INT DEFAULT 100;
+
+ALTER TABLE promocodes ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+
+ALTER TABLE promocodes ADD COLUMN IF NOT EXISTS is_new_users_only BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE promocodes ADD COLUMN IF NOT EXISTS max_uses_per_user INT DEFAULT 1;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus_notified BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS roleplay_mode VARCHAR(255) DEFAULT 'default';
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMP DEFAULT NOW();
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS daily_bonus_claimed_at TIMESTAMP;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS store_opened_at TIMESTAMP;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS has_received_24h_promo BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS has_received_store_promo BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS daily_api_cost NUMERIC DEFAULT 0;
